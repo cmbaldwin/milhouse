@@ -1,38 +1,16 @@
 #!/bin/bash
-# Ralph - Long-running AI agent loop
-# Usage: ./ralph.sh [--tool amp|claude] [max_iterations]
+# Ralph - Long-running AI agent loop (Copilot CLI version)
+# Usage: ./ralph-copilot.sh [max_iterations]
+#
+# Differences from ralph.sh:
+# - Uses `gh copilot -p` for non-interactive prompt mode (vs `claude --print`)
+# - Uses `--allow-all` for full permissions (vs `--dangerously-skip-permissions`)
+# - Uses `--add-dir` to grant file access to project directories
+# - Simplified argument parsing (no --tool flag, copilot only)
 
 set -e
 
-# Parse arguments
-TOOL="claude"  # Default to claude
-MAX_ITERATIONS=10
-
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --tool)
-      TOOL="$2"
-      shift 2
-      ;;
-    --tool=*)
-      TOOL="${1#*=}"
-      shift
-      ;;
-    *)
-      # Assume it's max_iterations if it's a number
-      if [[ "$1" =~ ^[0-9]+$ ]]; then
-        MAX_ITERATIONS="$1"
-      fi
-      shift
-      ;;
-  esac
-done
-
-# Validate tool choice
-if [[ "$TOOL" != "amp" && "$TOOL" != "claude" ]]; then
-  echo "Error: Invalid tool '$TOOL'. Must be 'amp' or 'claude'."
-  exit 1
-fi
+MAX_ITERATIONS=${1:-10}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PRD_FILE="$SCRIPT_DIR/prd.json"
@@ -77,19 +55,24 @@ if [ ! -f "$PROGRESS_FILE" ]; then
   echo "---" >> "$PROGRESS_FILE"
 fi
 
-echo "Starting Ralph - Tool: $TOOL - Max iterations: $MAX_ITERATIONS"
+echo "Starting Ralph - Tool: copilot - Max iterations: $MAX_ITERATIONS"
 
 for i in $(seq 1 $MAX_ITERATIONS); do
   echo ""
   echo "==============================================================="
-  echo "  Ralph Iteration $i of $MAX_ITERATIONS ($TOOL)"
+  echo "  Ralph Iteration $i of $MAX_ITERATIONS (copilot)"
   echo "==============================================================="
 
-  if [[ "$TOOL" == "amp" ]]; then
-    OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
-  else
-    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
-  fi
+  # Use gh copilot with:
+  # -p: non-interactive prompt mode (reads from stdin or argument)
+  # --allow-all: enable all permissions (tools, paths, urls) - equivalent to --yolo
+  # --add-dir: allow access to project directories
+  # Note: Not using -s (silent) so we can see progress in real-time via tee
+  OUTPUT=$(gh copilot -p "$(cat "$SCRIPT_DIR/CLAUDE.md")" \
+    --allow-all \
+    --add-dir "$SCRIPT_DIR/.." \
+    --add-dir "$SCRIPT_DIR/../../oroshi" \
+    2>&1 | tee /dev/stderr) || true
 
   # Check for completion signal
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then

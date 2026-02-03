@@ -1,0 +1,146 @@
+# Ralph Agent Instructions
+
+You are an autonomous coding agent working on **oroshi-moab**, a Rails 8 parent application that mounts the Oroshi engine gem for wholesale order management. Your goal is to transform it into a polished demo showcase.
+
+## Project Context
+
+- **Parent app:** oroshi-moab (Rails 8.1, Ruby 4.0, PostgreSQL)
+- **Engine gem:** oroshi (mounted via Gemfile, source at `../oroshi`)
+- **Stack:** Propshaft + importmap, Tailwind CSS + Bootstrap 5, Turbo + Stimulus, Devise, Solid Queue/Cache/Cable
+- **Testing:** Test::Unit + FactoryBot (NOT RSpec)
+- **Language:** Japanese-first, all UI text via `t()` i18n helpers
+- **Deployment:** Kamal 2 to Hetzner VPS
+
+Read the main project CLAUDE.md at the repo root AND the oroshi gem's CLAUDE.md at `../oroshi/CLAUDE.md` for full conventions.
+
+## Your Task
+
+1. Read the PRD at `prd.json` (in the same directory as this file)
+2. Read the progress log at `progress.txt` (check Codebase Patterns section first)
+3. Check you're on the correct branch from PRD `branchName`. If not, check it out or create from main.
+4. Pick the **highest priority** user story where `passes: false`
+5. Implement that single user story
+6. Run quality checks:
+   - `bundle exec rubocop --parallel` (linting)
+   - `bin/rails test` (tests, if applicable)
+7. Update CLAUDE.md if you discover reusable patterns (see below)
+8. If checks pass, commit ALL changes with message: `feat: [Story ID] - [Story Title]`
+9. Update the PRD to set `passes: true` for the completed story
+10. Append your progress to `progress.txt`
+
+## Quality Checks (Rails-specific)
+
+```bash
+# Linting (must pass before commit)
+bundle exec rubocop --parallel
+
+# Tests (run if test files exist for changed code)
+bin/rails test
+
+# If you add new routes, verify they resolve
+bin/rails routes | grep your_new_route
+```
+
+## Progress Report Format
+
+APPEND to progress.txt (never replace, always append):
+```
+## [Date/Time] - [Story ID]
+- What was implemented
+- Files changed
+- **Learnings for future iterations:**
+  - Patterns discovered
+  - Gotchas encountered
+  - Useful context
+---
+```
+
+The learnings section is critical - it helps future iterations avoid repeating mistakes.
+
+## Consolidate Patterns
+
+If you discover a **reusable pattern**, add it to the `## Codebase Patterns` section at the TOP of progress.txt:
+
+```
+## Codebase Patterns
+- Engine is mounted at /app, landing page at /
+- Use main_app.new_user_session_path for Devise routes from engine views
+- All UI text must use t() with locale files, never hardcode strings
+- Seed data uses find_or_create_by for idempotency
+```
+
+## Key Conventions
+
+- **i18n:** All user-facing text MUST use `t()` helpers. Add keys to `config/locales/`.
+- **Engine routes:** Use `main_app.` prefix for host app routes, bare helpers for engine routes.
+- **Jobs:** Use Solid Queue (NOT Sidekiq). Define recurring tasks in `config/recurring.yml`.
+- **Assets:** Propshaft + importmap. Use `bin/importmap pin` for JS deps, NOT npm.
+- **Controllers:** Parent app controllers go in `app/controllers/`, NOT under `oroshi/` namespace.
+- **Views:** Use Tailwind CSS + Bootstrap 5 for styling.
+- **Commits:** `feat: US-XXX - Title` format.
+
+## Browser Testing with Playwright MCP
+
+Use the Playwright MCP tools to verify pages load correctly. 
+
+**Note:** Playwright MCP is available in:
+- Claude CLI (via `playwright@claude-plugins-official` plugin)
+- VS Code Copilot (via built-in Playwright MCP)
+- gh copilot CLI may need separate MCP configuration
+
+If Playwright tools are not available, skip browser verification and rely on integration tests.
+
+### Available Tools
+- `mcp_microsoft_pla_browser_navigate` - Load a URL in the browser
+- `mcp_microsoft_pla_browser_snapshot` - Get accessibility tree of current page
+- `mcp_microsoft_pla_browser_console_messages` - Check for JS errors
+- `mcp_microsoft_pla_browser_click` - Click on elements
+
+### Testing Workflow
+1. Ensure Rails server is running (`bin/dev` on localhost:3000)
+2. Navigate to the page with `mcp_microsoft_pla_browser_navigate`
+3. Take a snapshot with `mcp_microsoft_pla_browser_snapshot` to verify content loaded
+4. Check console with `mcp_microsoft_pla_browser_console_messages` for JS errors
+5. Look for "Content missing" or Turbo frame errors in the snapshot
+
+### Success Criteria
+- HTTP 200 response (no server errors)
+- No JavaScript console errors (warnings OK)
+- No "Content missing" from Turbo frames
+- Expected content visible in snapshot
+
+### Creating Integration Tests
+After verifying a route works in the browser, create a corresponding test:
+```ruby
+# test/integration/example_test.rb
+class ExampleTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+  
+  setup do
+    @user = users(:admin_demo)
+  end
+  
+  test "page loads successfully" do
+    sign_in @user
+    get "/app/some_path"
+    assert_response :success
+    assert_select "expected-element"
+  end
+end
+```
+
+## Stop Condition
+
+After completing a user story, check if ALL stories have `passes: true`.
+
+If ALL stories are complete: reply with `<promise>COMPLETE</promise>`
+
+If stories remain with `passes: false`: end normally (next iteration picks up the next story).
+
+## Important
+
+- Work on ONE story per iteration
+- Commit frequently
+- Keep tests green
+- Read Codebase Patterns in progress.txt before starting
+- Follow existing code patterns in both oroshi-moab and the oroshi gem

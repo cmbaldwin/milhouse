@@ -1,0 +1,72 @@
+#!/bin/bash
+# Ralph Auto-Runner Management Script
+
+PLIST_FILE="$HOME/Library/LaunchAgents/com.user.ralph-autorun.plist"
+SCRIPT_FILE="$HOME/.local/bin/ralph-autorun.sh"
+LOG_FILE="$HOME/.ralph-autorun.log"
+
+case "$1" in
+  start)
+    echo "Loading Ralph Auto-Runner..."
+    launchctl load "$PLIST_FILE" 2>/dev/null || echo "Already loaded"
+    launchctl list | grep ralph-autorun
+    echo "✓ Ralph Auto-Runner is now active"
+    echo "  Runs every hour at 1 minute past"
+    ;;
+    
+  stop)
+    echo "Stopping Ralph Auto-Runner..."
+    launchctl unload "$PLIST_FILE" 2>/dev/null || echo "Not running"
+    echo "✓ Ralph Auto-Runner stopped"
+    ;;
+    
+  restart)
+    echo "Restarting Ralph Auto-Runner..."
+    launchctl unload "$PLIST_FILE" 2>/dev/null
+    launchctl load "$PLIST_FILE"
+    echo "✓ Ralph Auto-Runner restarted"
+    ;;
+    
+  status)
+    if launchctl list | grep -q ralph-autorun; then
+      echo "✓ Ralph Auto-Runner is ACTIVE"
+      launchctl list | grep ralph-autorun
+    else
+      echo "✗ Ralph Auto-Runner is NOT running"
+    fi
+    ;;
+    
+  test)
+    echo "Running Ralph Auto-Runner manually..."
+    "$SCRIPT_FILE"
+    ;;
+    
+  logs)
+    echo "=== Main Log ==="
+    tail -50 "$LOG_FILE" 2>/dev/null || echo "No log file yet"
+    echo ""
+    echo "=== Error Log ==="
+    tail -20 "$HOME/.ralph-autorun.err.log" 2>/dev/null || echo "No errors"
+    ;;
+    
+  watch)
+    echo "Watching Ralph Auto-Runner logs (Ctrl+C to stop)..."
+    tail -f "$LOG_FILE"
+    ;;
+    
+  *)
+    echo "Ralph Auto-Runner Management"
+    echo ""
+    echo "Usage: $0 {start|stop|restart|status|test|logs|watch}"
+    echo ""
+    echo "Commands:"
+    echo "  start    - Start the hourly auto-runner"
+    echo "  stop     - Stop the auto-runner"
+    echo "  restart  - Restart the auto-runner"
+    echo "  status   - Check if auto-runner is active"
+    echo "  test     - Run the script manually once"
+    echo "  logs     - Show recent logs"
+    echo "  watch    - Watch logs in real-time"
+    exit 1
+    ;;
+esac

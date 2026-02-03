@@ -1,27 +1,20 @@
 {
   "name": "ralph",
-  "version": "1.0.0",
-  "description": "Long-running AI agent loop with beautiful CLI",
-  "type": "module",
-  "bin": {
-    "ralph": "./dist/index.js"
-  },
+  "version": "2.0.0",
+  "description": "Ralph - Autonomous AI agent system for PRD-driven development",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsc && node dist/index.js"
+    "flowchart:dev": "cd flowchart && npm run dev",
+    "flowchart:build": "cd flowchart && npm run build"
   },
-  "dependencies": {
-    "ink": "^5.0.1",
-    "react": "^18.3.1",
-    "chalk": "^5.3.0",
-    "ink-spinner": "^5.0.0",
-    "ink-text-input": "^6.0.0",
-    "execa": "^9.5.2"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.2",
-    "@types/react": "^18.3.18",
-    "typescript": "^5.7.2"
-  }
+  "keywords": [
+    "ai",
+    "agent",
+    "autonomous",
+    "prd",
+    "automation",
+    "claude",
+    "copilot"
+  ],
+  "author": "",
+  "license": "MIT"
 }
