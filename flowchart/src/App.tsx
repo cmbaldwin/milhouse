@@ -61,7 +61,7 @@ const allSteps: {
   },
   {
     id: "3",
-    label: "Run ralph.sh",
+    label: "Run milhouse.sh",
     description: "Starts the autonomous loop",
     phase: "setup",
   },
@@ -476,7 +476,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="header">
-        <h1>How Ralph Works</h1>
+        <h1>How Milhouse Works</h1>
         <p>
           Autonomous AI agent loop for completing PRDs (amp / claude / copilot)
         </p>

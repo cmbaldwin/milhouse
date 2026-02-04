@@ -1,10 +1,10 @@
-# Ralph Flowchart
+# Milhouse Flowchart
 
-Interactive visualization of the Ralph autonomous agent workflow.
+Interactive visualization of the Milhouse autonomous agent workflow.
 
-## What is Ralph?
+## What is Milhouse?
 
-Ralph is an autonomous AI development agent that implements features from Product Requirements Documents (PRDs) by running in a loop. It automatically:
+Milhouse is an autonomous AI development agent that implements features from Product Requirements Documents (PRDs) by running in a loop. It automatically:
 - Selects the best available AI provider (amp → claude → copilot)
 - Picks the next incomplete story from your PRD
 - Implements the feature
