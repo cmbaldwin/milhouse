@@ -5,6 +5,49 @@
 set -e
 
 LOG_FILE="$HOME/.ralph-autorun.log"
+CONFIG_FILE="$HOME/.ralph-autorun.conf"
+
+# Load configuration or create default
+if [ ! -f "$CONFIG_FILE" ]; then
+  # Default: OFF from 7AM to 9PM (only runs 9PM-7AM)
+  cat > "$CONFIG_FILE" << 'EOF'
+# Ralph Auto-Runner Schedule Configuration
+# Times are in 24-hour format in your local timezone
+# Ralph will NOT run during these hours (off hours)
+# Default: OFF from 7AM to 9PM (only runs at night)
+OFF_START_HOUR=7
+OFF_END_HOUR=21
+EOF
+  log "Created default configuration at $CONFIG_FILE"
+fi
+
+# Source configuration
+source "$CONFIG_FILE"
+
+# Function to check if current time is within allowed hours
+check_schedule() {
+  CURRENT_HOUR=$(date +%H | sed 's/^0*//')  # Remove leading zeros
+  
+  # Handle wrap-around case (e.g., 21:00-07:00)
+  if [ "$OFF_START_HOUR" -lt "$OFF_END_HOUR" ]; then
+    # Simple case: 7-21 (off during day)
+    if [ "$CURRENT_HOUR" -ge "$OFF_START_HOUR" ] && [ "$CURRENT_HOUR" -lt "$OFF_END_HOUR" ]; then
+      log "Current hour $CURRENT_HOUR is within off hours ($OFF_START_HOUR:00-$OFF_END_HOUR:00)"
+      log "Ralph will not run. Next run window starts at $OFF_END_HOUR:00"
+      return 1
+    fi
+  else
+    # Wrap-around case: 21-7 (off during night)
+    if [ "$CURRENT_HOUR" -ge "$OFF_START_HOUR" ] || [ "$CURRENT_HOUR" -lt "$OFF_END_HOUR" ]; then
+      log "Current hour $CURRENT_HOUR is within off hours ($OFF_START_HOUR:00-$OFF_END_HOUR:00)"
+      log "Ralph will not run. Next run window starts at $OFF_END_HOUR:00"
+      return 1
+    fi
+  fi
+  
+  log "Current hour $CURRENT_HOUR is within operating hours"
+  return 0
+}
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
@@ -12,6 +55,12 @@ log() {
 
 log "=========================================="
 log "Ralph Auto-Runner: Starting check"
+
+# Check if we're within operating hours
+if ! check_schedule; then
+  log "Skipping run due to schedule configuration"
+  exit 0
+fi
 
 # Find all prd.json files in ~/dev/, excluding archive folders
 PRD_FILES=$(find "$HOME/dev" -type f -name "prd.json" ! -path "*/archive/*" ! -path "*/.git/*" 2>/dev/null || true)

@@ -7,6 +7,7 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
 ## Core Principles
 
 ### Memory & Context
+
 - **No persistent memory between iterations** - Each Ralph instance starts fresh
 - **Memory persists via:**
   - Git commit history
@@ -15,12 +16,14 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
   - `AGENTS.md` - discovered patterns for future iterations
 
 ### Task Management
+
 - **One story at a time** - Complete implementation of single user story per iteration
 - **Priority-driven** - Select highest priority incomplete story (`passes: false`)
 - **Quality gates** - Must pass all checks before marking complete
 - **Atomic commits** - One commit per story completion
 
 ### Learning & Patterns
+
 - **Always update AGENTS.md** with discovered patterns for future iterations
 - **Document in progress.txt** after each story completion
 - **Search before coding** - Look for existing patterns in codebase
@@ -29,6 +32,7 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
 ## Ralph Execution Flow
 
 1. **Context Gathering**
+
    ```bash
    # Ralph reads these files first
    - prd.json           # Find incomplete stories
@@ -39,10 +43,11 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
    ```
 
 2. **Task Selection**
+
    ```bash
    # Find highest priority incomplete story
-   jq -r '.userStories[] | select(.passes == false) | 
-     [.priority, .id, .title] | @tsv' prd.json | 
+   jq -r '.userStories[] | select(.passes == false) |
+     [.priority, .id, .title] | @tsv' prd.json |
      sort -n | head -1
    ```
 
@@ -53,6 +58,7 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
    - Write/update tests as needed
 
 4. **Quality Checks**
+
    ```bash
    # Project-specific checks (defined in CLAUDE.md)
    # Examples:
@@ -62,6 +68,7 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
    ```
 
 5. **Documentation & Commit**
+
    ```bash
    # Update tracking files
    - Mark story passes: true in prd.json
@@ -76,6 +83,7 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
 ## File Formats
 
 ### prd.json Structure
+
 ```json
 {
   "project": "project-name",
@@ -99,6 +107,7 @@ Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items ar
 ```
 
 ### progress.txt Format
+
 ```
 [YYYY-MM-DD HH:MM:SS] Story: US-XXX - Story Title
 Implemented: <what was built>
@@ -111,6 +120,7 @@ Learnings:
 ```
 
 ### Commit Message Format
+
 ```
 feat: US-XXX - User story title
 
@@ -127,6 +137,7 @@ Co-Authored-By: Ralph (Autonomous Agent) <ralph@example.com>
 Ralph supports three AI backends:
 
 ### 1. Claude CLI (`ralph.sh --tool claude`)
+
 ```bash
 ./ralph.sh --tool claude 25
 
@@ -137,6 +148,7 @@ Ralph supports three AI backends:
 ```
 
 ### 2. GitHub Copilot CLI (`ralph-copilot.sh`)
+
 ```bash
 ./ralph-copilot.sh 25
 
@@ -147,6 +159,7 @@ Ralph supports three AI backends:
 ```
 
 ### 3. AMP (`ralph.sh --tool amp`)
+
 ```bash
 ./ralph.sh --tool amp 15
 
@@ -165,36 +178,56 @@ ralph-autorun stop      # Stop scheduler
 ralph-autorun test      # Run once manually
 ralph-autorun logs      # View activity logs
 ralph-autorun watch     # Watch logs in real-time
+ralph-autorun config    # View or edit schedule
+ralph-autorun schedule  # Show current schedule status
 ```
 
 **How it works:**
+
 1. Scans `~/dev/` for `.ralph/prd.json` files
-2. Finds first PRD with incomplete stories
-3. Runs `ralph.sh --tool claude 15` in that directory
-4. Logs all activity to `~/.ralph-autorun.log`
-5. Runs every hour at :01 past (12:01, 13:01, etc.)
+2. Checks if current time is within operating hours
+3. Finds first PRD with incomplete stories
+4. Runs `ralph.sh --tool claude 15` in that directory
+5. Logs all activity to `~/.ralph-autorun.log`
+6. Runs every hour at :01 past (12:01, 13:01, etc.)
+
+**Schedule configuration:**
+
+By default, Ralph only runs from 9 PM to 7 AM (overnight) to avoid interfering with work hours. Configure in `~/.ralph-autorun.conf`:
+
+```bash
+# OFF hours (Ralph will NOT run during these times)
+OFF_START_HOUR=7   # 7 AM
+OFF_END_HOUR=21    # 9 PM
+```
+
+Times are in 24-hour format in your local timezone.
 
 ## Best Practices
 
 ### Story Writing
+
 - **Atomic stories** - Each story should be independently completable
 - **Clear acceptance criteria** - Testable, specific requirements
 - **Priority ordering** - Use numeric priority (1 = highest)
 - **Browser testing** - Include "Verify in browser using dev-browser skill" if UI changes
 
 ### Implementation Patterns
+
 - **Search first** - Look for similar implementations in codebase
 - **Follow conventions** - Match existing code style and patterns
 - **Test coverage** - Write tests for new functionality
 - **Quality first** - Never commit broken code
 
 ### Progress Tracking
+
 - **Update AGENTS.md** - Document new patterns discovered
 - **Detailed progress.txt** - Help future iterations understand context
 - **Git commits** - One commit per completed story
 - **Archive on branch change** - Old PRDs auto-archived to `archive/`
 
 ### Error Handling
+
 - **Quality check failures** - Fix issues, don't skip
 - **Rate limits** - Ralph waits and retries automatically
 - **Incomplete stories** - Ralph continues from where it left off
@@ -203,7 +236,9 @@ ralph-autorun watch     # Watch logs in real-time
 ## Discovered Patterns
 
 ### Pattern: Browser Testing with Playwright MCP
+
 When acceptance criteria includes "Verify in browser":
+
 ```bash
 # Use Claude CLI backend for Playwright MCP support
 ./ralph.sh --tool claude 25
@@ -217,7 +252,9 @@ When acceptance criteria includes "Verify in browser":
 ```
 
 ### Pattern: Archiving Completed PRDs
+
 Ralph auto-archives when branch changes:
+
 ```bash
 # Archives to: .ralph/archive/YYYY-MM-DD-branch-name/
 - prd.json
@@ -225,7 +262,9 @@ Ralph auto-archives when branch changes:
 ```
 
 ### Pattern: Concurrent Run Prevention
+
 Auto-runner detects if Ralph already running:
+
 ```bash
 # In ralph-autorun.sh:
 if pgrep -f "ralph.sh" > /dev/null; then
@@ -235,7 +274,9 @@ fi
 ```
 
 ### Pattern: Multi-Project Management
+
 Auto-runner handles multiple projects:
+
 ```bash
 # Searches all of ~/dev/ recursively
 find ~/dev -name "prd.json" ! -path "*/archive/*"
@@ -247,6 +288,7 @@ find ~/dev -name "prd.json" ! -path "*/archive/*"
 ## Troubleshooting
 
 ### Ralph won't start
+
 ```bash
 # Check permissions
 chmod +x ralph.sh ralph-copilot.sh
@@ -259,6 +301,7 @@ which jq claude gh
 ```
 
 ### Stories not progressing
+
 ```bash
 # Check quality check commands in CLAUDE.md
 # Verify tests pass locally
@@ -267,6 +310,7 @@ tail -50 progress.txt
 ```
 
 ### Auto-runner not finding PRD
+
 ```bash
 # Verify PRD location
 find ~/dev -name "prd.json" ! -path "*/archive/*"

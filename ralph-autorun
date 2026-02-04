@@ -4,6 +4,7 @@
 PLIST_FILE="$HOME/Library/LaunchAgents/com.user.ralph-autorun.plist"
 SCRIPT_FILE="$HOME/.local/bin/ralph-autorun.sh"
 LOG_FILE="$HOME/.ralph-autorun.log"
+CONFIG_FILE="$HOME/.ralph-autorun.conf"
 
 case "$1" in
   start)
@@ -54,10 +55,70 @@ case "$1" in
     tail -f "$LOG_FILE"
     ;;
     
+  config)
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "Creating default configuration..."
+      cat > "$CONFIG_FILE" << 'EOF'
+# Ralph Auto-Runner Schedule Configuration
+# Times are in 24-hour format in your local timezone
+# Ralph will NOT run during these hours (off hours)
+# Default: OFF from 7AM to 9PM (only runs at night)
+OFF_START_HOUR=7
+OFF_END_HOUR=21
+EOF
+      echo "✓ Created: $CONFIG_FILE"
+    fi
+    
+    if [ "$2" = "edit" ]; then
+      ${EDITOR:-nano} "$CONFIG_FILE"
+      echo "✓ Configuration updated"
+      echo "  Run 'ralph-autorun restart' to apply changes"
+    else
+      echo "Current configuration:"
+      echo ""
+      cat "$CONFIG_FILE"
+      echo ""
+      echo "To edit: ralph-autorun config edit"
+    fi
+    ;;
+    
+  schedule)
+    if [ ! -f "$CONFIG_FILE" ]; then
+      echo "No configuration file found. Run 'ralph-autorun config' to create one."
+      exit 1
+    fi
+    
+    source "$CONFIG_FILE"
+    CURRENT_HOUR=$(date +%H | sed 's/^0*//')
+    
+    echo "Schedule Configuration:"
+    echo "  OFF hours: ${OFF_START_HOUR}:00 - ${OFF_END_HOUR}:00"
+    echo "  Current time: $(date '+%H:%M %Z')"
+    echo "  Current hour: $CURRENT_HOUR"
+    echo ""
+    
+    # Check if currently in off hours
+    if [ "$OFF_START_HOUR" -lt "$OFF_END_HOUR" ]; then
+      if [ "$CURRENT_HOUR" -ge "$OFF_START_HOUR" ] && [ "$CURRENT_HOUR" -lt "$OFF_END_HOUR" ]; then
+        echo "Status: ⏸️  OFF (within off hours)"
+        echo "Next run window: ${OFF_END_HOUR}:00"
+      else
+        echo "Status: ✓ ACTIVE (within operating hours)"
+      fi
+    else
+      if [ "$CURRENT_HOUR" -ge "$OFF_START_HOUR" ] || [ "$CURRENT_HOUR" -lt "$OFF_END_HOUR" ]; then
+        echo "Status: ⏸️  OFF (within off hours)"
+        echo "Next run window: ${OFF_END_HOUR}:00"
+      else
+        echo "Status: ✓ ACTIVE (within operating hours)"
+      fi
+    fi
+    ;;
+  
   *)
     echo "Ralph Auto-Runner Management"
     echo ""
-    echo "Usage: $0 {start|stop|restart|status|test|logs|watch}"
+    echo "Usage: $0 {start|stop|restart|status|test|logs|watch|config|schedule}"
     echo ""
     echo "Commands:"
     echo "  start    - Start the hourly auto-runner"
@@ -67,6 +128,8 @@ case "$1" in
     echo "  test     - Run the script manually once"
     echo "  logs     - Show recent logs"
     echo "  watch    - Watch logs in real-time"
+    echo "  config   - View or edit schedule configuration"
+    echo "  schedule - Show current schedule and status"
     exit 1
     ;;
 esac
