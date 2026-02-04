@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Agent execution logic for Ralph
+# Agent execution logic for Milhouse
 # Handles PRD processing, archiving, progress tracking, and agent iteration loop
 
 run_agent() {
@@ -26,7 +26,7 @@ run_agent() {
 
         if [ -n "$CURRENT_BRANCH" ] && [ -n "$LAST_BRANCH" ] && [ "$CURRENT_BRANCH" != "$LAST_BRANCH" ]; then
             DATE=$(date +%Y-%m-%d)
-            FOLDER_NAME=$(echo "$LAST_BRANCH" | sed 's|^ralph/||; s|^feature/||')
+            FOLDER_NAME=$(echo "$LAST_BRANCH" | sed 's|^milhouse/||; s|^feature/||')
             ARCHIVE_FOLDER="$ARCHIVE_DIR/$DATE-$FOLDER_NAME"
 
             echo "Archiving previous run: $LAST_BRANCH"
@@ -35,7 +35,7 @@ run_agent() {
             [ -f "$PROGRESS_FILE" ] && cp "$PROGRESS_FILE" "$ARCHIVE_FOLDER/"
             echo "   Archived to: $ARCHIVE_FOLDER"
 
-            echo "# Ralph Progress Log" > "$PROGRESS_FILE"
+            echo "# Milhouse Progress Log" > "$PROGRESS_FILE"
             echo "Started: $(date)" >> "$PROGRESS_FILE"
             echo "---" >> "$PROGRESS_FILE"
         fi
@@ -51,18 +51,18 @@ run_agent() {
 
     # Initialize progress file if it doesn't exist
     if [ ! -f "$PROGRESS_FILE" ]; then
-        echo "# Ralph Progress Log" > "$PROGRESS_FILE"
+        echo "# Milhouse Progress Log" > "$PROGRESS_FILE"
         echo "Started: $(date)" >> "$PROGRESS_FILE"
         echo "---" >> "$PROGRESS_FILE"
     fi
 
-    echo "Starting Ralph - Tool: $tool - Max iterations: $turns"
+    echo "Starting Milhouse - Tool: $tool - Max iterations: $turns"
 
     # Main agent execution loop
     for i in $(seq 1 $turns); do
         echo ""
         echo "==============================================================="
-        echo "  Ralph Iteration $i of $turns ($tool)"
+        echo "  Milhouse Iteration $i of $turns ($tool)"
         echo "==============================================================="
 
         if [[ "$tool" == "amp" ]]; then
@@ -74,7 +74,7 @@ run_agent() {
         # Check for completion signal
         if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
             echo ""
-            echo "Ralph completed all tasks!"
+            echo "Milhouse completed all tasks!"
             echo "Completed at iteration $i of $turns"
             return 0
         fi
@@ -84,7 +84,7 @@ run_agent() {
     done
 
     echo ""
-    echo "Ralph reached max iterations ($turns) without completing all tasks."
+    echo "Milhouse reached max iterations ($turns) without completing all tasks."
     echo "Check $PROGRESS_FILE for status."
     return 1
 }
