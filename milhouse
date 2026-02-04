@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load libraries
+source "$SCRIPT_DIR/lib/agent.sh"
+source "$SCRIPT_DIR/lib/autorun.sh"
+
+VERSION="2.0.0"
+
+show_help() {
+    cat << EOF
+Milhouse - Autonomous AI Agent System
+
+Usage:
+  milhouse run [turns]              Run milhouse agent (default: 25 turns)
+  milhouse run --tool <tool> [turns] Run with specific tool (claude|copilot|amp)
+
+  milhouse autorun start            Start autorunner daemon
+  milhouse autorun stop             Stop autorunner daemon
+  milhouse autorun status           Check autorunner status
+  milhouse autorun logs             View autorunner logs
+  milhouse autorun schedule         Show/edit schedule
+  milhouse autorun test             Dry run (find PRDs, don't execute)
+
+  milhouse sync                     Sync all milhouse instances in ~/dev
+  milhouse qmd setup                Set up qmd for current project
+  milhouse qmd update               Update qmd index
+  milhouse install [project]        Install milhouse into project
+
+  milhouse version                  Show version
+  milhouse help                     Show this help
+
+Examples:
+  milhouse run 15                   Run for 15 turns
+  milhouse run --tool copilot       Run with GitHub Copilot
+  milhouse autorun start            Start background automation
+  milhouse sync                     Update all instances
+  milhouse qmd setup                Configure qmd for this project
+
+EOF
+}
+
+# Main command routing
+main() {
+    case "${1:-}" in
+        run)
+            shift
+            run_agent "$@"
+            ;;
+        autorun)
+            shift
+            case "${1:-}" in
+                start) autorun_start ;;
+                stop) autorun_stop ;;
+                status) autorun_status ;;
+                logs) autorun_logs ;;
+                schedule) autorun_schedule ;;
+                test) autorun_test ;;
+                *) echo "Unknown autorun command: ${1:-}"; show_help; exit 1 ;;
+            esac
+            ;;
+        sync)
+            shift
+            sync_instances "$@"
+            ;;
+        qmd)
+            shift
+            case "${1:-}" in
+                setup) qmd_setup ;;
+                update) qmd_update ;;
+                *) echo "Unknown qmd command: ${1:-}"; show_help; exit 1 ;;
+            esac
+            ;;
+        install)
+            shift
+            install_milhouse "$@"
+            ;;
+        version)
+            echo "Milhouse version $VERSION"
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        *)
+            echo "Unknown command: ${1:-}"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
