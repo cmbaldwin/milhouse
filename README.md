@@ -5,6 +5,7 @@ Ralph is an autonomous AI agent system that executes product development tasks d
 ## Overview
 
 Ralph works by:
+
 1. Reading `prd.json` files to find incomplete user stories
 2. Implementing one story at a time completely
 3. Running quality checks (linting + tests)
@@ -67,18 +68,21 @@ echo "Started: $(date)" >> progress.txt
 ### Manual Execution
 
 **Run with Claude CLI (recommended for Playwright MCP support):**
+
 ```bash
 cd your-project/.ralph
 ./ralph.sh --tool claude 25
 ```
 
 **Run with GitHub Copilot CLI:**
+
 ```bash
 cd your-project/.ralph
 ./ralph-copilot.sh 25
 ```
 
 **Run with AMP:**
+
 ```bash
 cd your-project/.ralph
 ./ralph.sh --tool amp 15
@@ -184,6 +188,7 @@ watch -n 5 'jq ".userStories[] | {id, title, passes}" prd.json'
 ```
 
 **Key Fields:**
+
 - `passes: false` - Story incomplete, Ralph should work on it
 - `passes: true` - Story complete, Ralph skips it
 - `priority` - Lower numbers = higher priority (1 is highest)
@@ -191,8 +196,9 @@ watch -n 5 'jq ".userStories[] | {id, title, passes}" prd.json'
 ## CLAUDE.md Structure
 
 Your `CLAUDE.md` file must include:
+
 - Project context and tech stack
-- Task execution instructions  
+- Task execution instructions
 - Quality check commands
 - Progress report format
 - Codebase patterns and conventions
@@ -233,19 +239,23 @@ See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
 ## AI Backend Support
 
 ### Claude CLI (`ralph.sh --tool claude`)
+
 - ✅ **Playwright MCP**: Full browser automation support
 - ✅ **Plugin**: `playwright@claude-plugins-official`
 - ✅ **Config**: `~/.claude/settings.json`
 
 ### GitHub Copilot CLI (`ralph-copilot.sh`)
+
 - ❌ **Playwright MCP**: Not available natively
 - ⚠️ **Alternative**: Can run Playwright tests via bash commands
 
 ### VS Code GitHub Copilot
+
 - ✅ **Playwright MCP**: Built-in support
 - ✅ **All browser tools**: Navigate, snapshot, console, click, etc.
 
 ### AMP (`ralph.sh --tool amp`)
+
 - Uses `prompt.md` format
 - Configure based on AMP documentation
 
@@ -259,7 +269,7 @@ See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
 # For all scripts
 brew install jq              # JSON parsing
 
-# For ralph.sh --tool claude  
+# For ralph.sh --tool claude
 brew install claude-cli      # Claude AI CLI
 
 # For ralph-copilot.sh
@@ -276,6 +286,7 @@ which gh && gh copilot --version && echo "✓ gh copilot installed"
 The `flowchart/` directory contains an interactive React Flow visualization explaining how Ralph works.
 
 **Run locally:**
+
 ```bash
 cd flowchart
 npm install
@@ -283,6 +294,7 @@ npm run dev
 ```
 
 **Build for production:**
+
 ```bash
 cd flowchart
 npm run build
@@ -291,6 +303,7 @@ npm run build
 ## Project Structure
 
 ### This Repository
+
 ```
 ralph/
 ├── ralph.sh                    # Main agent script (multi-backend)
@@ -309,6 +322,7 @@ ralph/
 ```
 
 ### Your Project Structure
+
 ```
 your-project/
 ├── .ralph/
@@ -334,7 +348,7 @@ your-project/
    - Document learnings in progress.txt
 
 2. **Branch Management**
-   - Use descriptive branch names (feature/*, bugfix/*)
+   - Use descriptive branch names (feature/_, bugfix/_)
    - Ralph auto-archives when branch changes
    - Keep old PRDs in archive/ for reference
 
@@ -356,6 +370,7 @@ your-project/
 ## Troubleshooting
 
 ### Ralph Won't Start
+
 ```bash
 # Check if script is executable
 chmod +x .ralph/ralph.sh
@@ -368,6 +383,7 @@ which claude jq
 ```
 
 ### Auto-Runner Not Running
+
 ```bash
 # Check if loaded
 launchctl list | grep ralph-autorun
@@ -383,6 +399,7 @@ ralph-autorun logs
 ```
 
 ### PRD Not Found by Auto-Runner
+
 ```bash
 # Verify PRD location
 find ~/dev -name "prd.json" ! -path "*/archive/*"
@@ -411,11 +428,12 @@ jq '[.userStories[] | select(.passes == false)] | length' .ralph/prd.json
 ### Commit Messages
 
 Ralph automatically creates commits with format:
+
 ```
 feat: US-XXX - User story title
 
 - Bullet points of changes
-- Files modified  
+- Files modified
 - Test results
 ```
 

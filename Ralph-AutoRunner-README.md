@@ -43,16 +43,19 @@ ralph-autorun schedule  # Show current schedule and status
 Ralph Auto-Runner has configurable operating hours to avoid running during work hours.
 
 **View current schedule:**
+
 ```bash
 ralph-autorun schedule
 ```
 
 **Edit schedule:**
+
 ```bash
 ralph-autorun config edit
 ```
 
 **Default configuration** (`~/.ralph-autorun.conf`):
+
 ```bash
 # Ralph will NOT run during these hours (off hours)
 # Times are in 24-hour format in your local timezone
@@ -82,6 +85,7 @@ OFF_END_HOUR=0
 ```
 
 After editing config:
+
 ```bash
 ralph-autorun restart  # Apply changes
 ```
@@ -97,6 +101,7 @@ $ ralph-autorun status
 ## How It Works
 
 ### Schedule
+
 - Runs every hour at 1 minute past (using macOS LaunchAgent)
 - Only operates during configured hours (default: 9 PM - 7 AM)
 - Will catch up if computer was asleep during scheduled time
@@ -104,12 +109,14 @@ $ ralph-autorun status
 - Times respect your local timezone (automatically)
 
 ### PRD Discovery
+
 - Searches: `~/dev/**/.ralph/prd.json`
 - Excludes: `*/archive/*` and `*/.git/*`
 - Checks: `jq '[.userStories[] | select(.passes == false)] | length'`
 - Runs: First PRD with incomplete stories
 
 ### Safety Features
+
 - **Concurrent run detection** - Skips if ralph.sh already running
 - **Archived folder exclusion** - Won't run old/completed PRDs
 - **Error logging** - Captures all errors to log files
@@ -118,17 +125,20 @@ $ ralph-autorun status
 ## Logs
 
 ### Main Activity Log
+
 ```bash
 tail -f ~/.ralph-autorun.log
 ```
 
 Shows:
+
 - When checks run
 - Which PRDs found
 - Ralph execution output
 - Completion status
 
 ### Error Log
+
 ```bash
 tail -f ~/.ralph-autorun.err.log
 ```
@@ -152,6 +162,7 @@ Shows any LaunchAgent or system errors.
 ```
 
 **Example: During off hours**
+
 ```
 [2026-02-04 14:01:05] ==========================================
 [2026-02-04 14:01:05] Ralph Auto-Runner: Starting check
@@ -164,21 +175,25 @@ Shows any LaunchAgent or system errors.
 ## Troubleshooting
 
 ### Service Not Running
+
 ```bash
 ralph-autorun start
 ```
 
 ### Check Recent Activity
+
 ```bash
 ralph-autorun logs
 ```
 
 ### Test Manually
+
 ```bash
 ralph-autorun test
 ```
 
 ### Remove/Uninstall
+
 ```bash
 ralph-autorun stop
 rm /Users/cody/Library/LaunchAgents/com.user.ralph-autorun.plist
