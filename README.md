@@ -1,10 +1,10 @@
-# Ralph - Autonomous AI Agent System
+# Milhouse - Autonomous AI Agent System
 
-Ralph is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, or AMP) and can run both manually and automatically via scheduled tasks.
+Milhouse is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, or AMP) and can run both manually and automatically via scheduled tasks.
 
 ## Overview
 
-Ralph works by:
+Milhouse works by:
 
 1. Reading `prd.json` files to find incomplete user stories
 2. Implementing one story at a time completely
@@ -17,39 +17,39 @@ Ralph works by:
 ### For a New Project
 
 ```bash
-# 1. Copy the Ralph scripts to your project
-mkdir -p your-project/.ralph
-cd your-project/.ralph
+# 1. Copy the Milhouse scripts to your project
+mkdir -p your-project/.milhouse
+cd your-project/.milhouse
 
 # 2. Copy core files from this repo
-cp /path/to/ralph/ralph.sh .
-cp /path/to/ralph/ralph-copilot.sh .
-cp /path/to/ralph/CLAUDE.md.example CLAUDE.md
-cp /path/to/ralph/prd.json.example prd.json
+cp /path/to/milhouse/milhouse.sh .
+cp /path/to/milhouse/milhouse-copilot.sh .
+cp /path/to/milhouse/CLAUDE.md.example CLAUDE.md
+cp /path/to/milhouse/prd.json.example prd.json
 
 # 3. Make scripts executable
-chmod +x ralph.sh ralph-copilot.sh
+chmod +x milhouse.sh milhouse-copilot.sh
 
 # 4. Edit CLAUDE.md and prd.json for your project
 
 # 5. Initialize progress file
-echo "# Ralph Progress Log" > progress.txt
+echo "# Milhouse Progress Log" > progress.txt
 echo "Started: $(date)" >> progress.txt
 
-# 6. Run Ralph
-./ralph.sh --tool claude 15
+# 6. Run Milhouse
+./milhouse.sh --tool claude 15
 ```
 
 ## Core Files
 
 ### Scripts
 
-- **ralph.sh** - Main Ralph agent script (supports Claude CLI and AMP backends)
-- **ralph-copilot.sh** - GitHub Copilot CLI variant
-- **ralph-autorun.sh** - System-wide auto-runner that finds and executes incomplete PRDs
-- **ralph-autorun** - Management command for the auto-runner service
+- **milhouse.sh** - Main Milhouse agent script (supports Claude CLI and AMP backends)
+- **milhouse-copilot.sh** - GitHub Copilot CLI variant
+- **milhouse-autorun.sh** - System-wide auto-runner that finds and executes incomplete PRDs
+- **milhouse-autorun** - Management command for the auto-runner service
 
-### Project Files (in your project's `.ralph/` directory)
+### Project Files (in your project's `.milhouse/` directory)
 
 - **CLAUDE.md** - Agent instructions, conventions, and quality check commands
 - **prd.json** - Product requirements with user stories and completion status
@@ -70,48 +70,48 @@ echo "Started: $(date)" >> progress.txt
 **Run with Claude CLI (recommended for Playwright MCP support):**
 
 ```bash
-cd your-project/.ralph
-./ralph.sh --tool claude 25
+cd your-project/.milhouse
+./milhouse.sh --tool claude 25
 ```
 
 **Run with GitHub Copilot CLI:**
 
 ```bash
-cd your-project/.ralph
-./ralph-copilot.sh 25
+cd your-project/.milhouse
+./milhouse-copilot.sh 25
 ```
 
 **Run with AMP:**
 
 ```bash
-cd your-project/.ralph
-./ralph.sh --tool amp 15
+cd your-project/.milhouse
+./milhouse.sh --tool amp 15
 ```
 
-### Automatic Execution (Ralph Auto-Runner)
+### Automatic Execution (Milhouse Auto-Runner)
 
-The auto-runner scans `~/dev/` for incomplete PRDs and runs Ralph automatically every hour.
+The auto-runner scans `~/dev/` for incomplete PRDs and runs Milhouse automatically every hour.
 
 **Install the auto-runner system-wide:**
 
 ```bash
 # 1. Copy scripts to your bin directory
 mkdir -p ~/.local/bin
-cp ralph-autorun.sh ~/.local/bin/
-cp ralph-autorun ~/.local/bin/
-chmod +x ~/.local/bin/ralph-autorun.sh ~/.local/bin/ralph-autorun
+cp milhouse-autorun.sh ~/.local/bin/
+cp milhouse-autorun ~/.local/bin/
+chmod +x ~/.local/bin/milhouse-autorun.sh ~/.local/bin/milhouse-autorun
 
 # 2. Create LaunchAgent for macOS
-cat > ~/Library/LaunchAgents/com.user.ralph-autorun.plist << 'EOF'
+cat > ~/Library/LaunchAgents/com.user.milhouse-autorun.plist << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.user.ralph-autorun</string>
+    <string>com.user.milhouse-autorun</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/YOUR_USERNAME/.local/bin/ralph-autorun.sh</string>
+        <string>/Users/YOUR_USERNAME/.local/bin/milhouse-autorun.sh</string>
     </array>
     <key>StartCalendarInterval</key>
     <dict>
@@ -119,9 +119,9 @@ cat > ~/Library/LaunchAgents/com.user.ralph-autorun.plist << 'EOF'
         <integer>1</integer>
     </dict>
     <key>StandardOutPath</key>
-    <string>/Users/YOUR_USERNAME/.ralph-autorun.out.log</string>
+    <string>/Users/YOUR_USERNAME/.milhouse-autorun.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/YOUR_USERNAME/.ralph-autorun.err.log</string>
+    <string>/Users/YOUR_USERNAME/.milhouse-autorun.err.log</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
@@ -135,19 +135,19 @@ EOF
 
 # 3. Replace YOUR_USERNAME with your actual username
 # 4. Load the LaunchAgent
-launchctl load ~/Library/LaunchAgents/com.user.ralph-autorun.plist
+launchctl load ~/Library/LaunchAgents/com.user.milhouse-autorun.plist
 ```
 
 **Management commands:**
 
 ```bash
-ralph-autorun status    # Check if running
-ralph-autorun start     # Start hourly scheduler
-ralph-autorun stop      # Stop scheduler
-ralph-autorun restart   # Restart scheduler
-ralph-autorun test      # Run manually once
-ralph-autorun logs      # Show recent logs
-ralph-autorun watch     # Watch logs in real-time
+milhouse-autorun status    # Check if running
+milhouse-autorun start     # Start hourly scheduler
+milhouse-autorun stop      # Stop scheduler
+milhouse-autorun restart   # Restart scheduler
+milhouse-autorun test      # Run manually once
+milhouse-autorun logs      # Show recent logs
+milhouse-autorun watch     # Watch logs in real-time
 ```
 
 ### Monitor Progress
@@ -189,8 +189,8 @@ watch -n 5 'jq ".userStories[] | {id, title, passes}" prd.json'
 
 **Key Fields:**
 
-- `passes: false` - Story incomplete, Ralph should work on it
-- `passes: true` - Story complete, Ralph skips it
+- `passes: false` - Story incomplete, Milhouse should work on it
+- `passes: true` - Story complete, Milhouse skips it
 - `priority` - Lower numbers = higher priority (1 is highest)
 
 ## CLAUDE.md Structure
@@ -206,7 +206,7 @@ Your `CLAUDE.md` file must include:
 
 See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
 
-## Ralph's Workflow
+## Milhouse's Workflow
 
 1. **Context Gathering**
    - Reads `prd.json` for tasks
@@ -234,17 +234,17 @@ See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
    - Appends learnings to progress.txt
 
 6. **Complete**
-   - When all stories have `passes: true`, Ralph reports completion
+   - When all stories have `passes: true`, Milhouse reports completion
 
 ## AI Backend Support
 
-### Claude CLI (`ralph.sh --tool claude`)
+### Claude CLI (`milhouse.sh --tool claude`)
 
 - ✅ **Playwright MCP**: Full browser automation support
 - ✅ **Plugin**: `playwright@claude-plugins-official`
 - ✅ **Config**: `~/.claude/settings.json`
 
-### GitHub Copilot CLI (`ralph-copilot.sh`)
+### GitHub Copilot CLI (`milhouse-copilot.sh`)
 
 - ❌ **Playwright MCP**: Not available natively
 - ⚠️ **Alternative**: Can run Playwright tests via bash commands
@@ -254,12 +254,12 @@ See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
 - ✅ **Playwright MCP**: Built-in support
 - ✅ **All browser tools**: Navigate, snapshot, console, click, etc.
 
-### AMP (`ralph.sh --tool amp`)
+### AMP (`milhouse.sh --tool amp`)
 
 - Uses `prompt.md` format
 - Configure based on AMP documentation
 
-**Recommendation:** Use `ralph.sh --tool claude` for PRDs requiring browser testing.
+**Recommendation:** Use `milhouse.sh --tool claude` for PRDs requiring browser testing.
 
 ## Dependencies
 
@@ -269,10 +269,10 @@ See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
 # For all scripts
 brew install jq              # JSON parsing
 
-# For ralph.sh --tool claude
+# For milhouse.sh --tool claude
 brew install claude-cli      # Claude AI CLI
 
-# For ralph-copilot.sh
+# For milhouse-copilot.sh
 gh extension install github/gh-copilot  # GitHub Copilot CLI
 
 # Verify installations
@@ -283,7 +283,7 @@ which gh && gh copilot --version && echo "✓ gh copilot installed"
 
 ## Flowchart Visualization
 
-The `flowchart/` directory contains an interactive React Flow visualization explaining how Ralph works.
+The `flowchart/` directory contains an interactive React Flow visualization explaining how Milhouse works.
 
 **Run locally:**
 
@@ -305,19 +305,19 @@ npm run build
 ### This Repository
 
 ```
-ralph/
-├── ralph.sh                    # Main agent script (multi-backend)
-├── ralph-copilot.sh           # GitHub Copilot variant
-├── ralph-autorun.sh           # System-wide auto-runner
-├── ralph-autorun              # Management command
+milhouse/
+├── milhouse.sh                    # Main agent script (multi-backend)
+├── milhouse-copilot.sh           # GitHub Copilot variant
+├── milhouse-autorun.sh           # System-wide auto-runner
+├── milhouse-autorun              # Management command
 ├── CLAUDE.md.example          # Agent instructions template
 ├── prd.json.example           # PRD template
 ├── prompt.md                  # Legacy prompt (for AMP)
 ├── prompt.example-rails.md    # Rails-specific example
 ├── AGENTS.md                  # Agent patterns and learnings
 ├── README.md                  # This file
-├── Ralph-System-Complete-Documentation.md  # Full documentation
-├── Ralph-AutoRunner-README.md # Auto-runner docs
+├── Milhouse-System-Complete-Documentation.md  # Full documentation
+├── Milhouse-AutoRunner-README.md # Auto-runner docs
 └── flowchart/                 # Interactive visualization
 ```
 
@@ -325,9 +325,9 @@ ralph/
 
 ```
 your-project/
-├── .ralph/
-│   ├── ralph.sh
-│   ├── ralph-copilot.sh
+├── .milhouse/
+│   ├── milhouse.sh
+│   ├── milhouse-copilot.sh
 │   ├── CLAUDE.md
 │   ├── prd.json
 │   ├── progress.txt
@@ -349,53 +349,53 @@ your-project/
 
 2. **Branch Management**
    - Use descriptive branch names (feature/_, bugfix/_)
-   - Ralph auto-archives when branch changes
+   - Milhouse auto-archives when branch changes
    - Keep old PRDs in archive/ for reference
 
 3. **Progress Tracking**
    - Update Codebase Patterns section in progress.txt
    - Document gotchas and learnings for future iterations
-   - Ralph reads patterns before starting new stories
+   - Milhouse reads patterns before starting new stories
 
 4. **Monitoring**
-   - Check auto-runner logs weekly: `ralph-autorun logs`
+   - Check auto-runner logs weekly: `milhouse-autorun logs`
    - Review progress.txt after each run
-   - Monitor git commits for Ralph's work
+   - Monitor git commits for Milhouse's work
 
 5. **Manual Overrides**
-   - Safe to run ralph.sh manually while auto-runner active
-   - Auto-runner detects and skips if Ralph already running
-   - Stop auto-runner during active development: `ralph-autorun stop`
+   - Safe to run milhouse.sh manually while auto-runner active
+   - Auto-runner detects and skips if Milhouse already running
+   - Stop auto-runner during active development: `milhouse-autorun stop`
 
 ## Troubleshooting
 
-### Ralph Won't Start
+### Milhouse Won't Start
 
 ```bash
 # Check if script is executable
-chmod +x .ralph/ralph.sh
+chmod +x .milhouse/milhouse.sh
 
 # Verify dependencies
 which claude jq
 
 # Test with explicit path
-/bin/bash .ralph/ralph.sh --tool claude 1
+/bin/bash .milhouse/milhouse.sh --tool claude 1
 ```
 
 ### Auto-Runner Not Running
 
 ```bash
 # Check if loaded
-launchctl list | grep ralph-autorun
+launchctl list | grep milhouse-autorun
 
 # Restart service
-ralph-autorun restart
+milhouse-autorun restart
 
 # Test manually
-ralph-autorun test
+milhouse-autorun test
 
 # Check logs
-ralph-autorun logs
+milhouse-autorun logs
 ```
 
 ### PRD Not Found by Auto-Runner
@@ -405,7 +405,7 @@ ralph-autorun logs
 find ~/dev -name "prd.json" ! -path "*/archive/*"
 
 # Check PRD has incomplete stories
-jq '[.userStories[] | select(.passes == false)] | length' .ralph/prd.json
+jq '[.userStories[] | select(.passes == false)] | length' .milhouse/prd.json
 ```
 
 ## Integration with GitHub
@@ -413,21 +413,21 @@ jq '[.userStories[] | select(.passes == false)] | length' .ralph/prd.json
 ### Recommended .gitignore
 
 ```gitignore
-# Ralph working files
-.ralph/.last-branch
-.ralph/archive/*/
+# Milhouse working files
+.milhouse/.last-branch
+.milhouse/archive/*/
 
 # Keep these tracked:
-# .ralph/ralph.sh
-# .ralph/ralph-copilot.sh
-# .ralph/CLAUDE.md
-# .ralph/prd.json
-# .ralph/progress.txt
+# .milhouse/milhouse.sh
+# .milhouse/milhouse-copilot.sh
+# .milhouse/CLAUDE.md
+# .milhouse/prd.json
+# .milhouse/progress.txt
 ```
 
 ### Commit Messages
 
-Ralph automatically creates commits with format:
+Milhouse automatically creates commits with format:
 
 ```
 feat: US-XXX - User story title
@@ -439,10 +439,10 @@ feat: US-XXX - User story title
 
 ## Resources
 
-- **Full Documentation**: [Ralph-System-Complete-Documentation.md](Ralph-System-Complete-Documentation.md)
-- **Auto-Runner Guide**: [Ralph-AutoRunner-README.md](Ralph-AutoRunner-README.md)
+- **Full Documentation**: [Milhouse-System-Complete-Documentation.md](Milhouse-System-Complete-Documentation.md)
+- **Auto-Runner Guide**: [Milhouse-AutoRunner-README.md](Milhouse-AutoRunner-README.md)
 - **Flowchart**: [flowchart/](flowchart/)
-- **Skills**: [skills/](skills/) - PRD and Ralph skill documentation
+- **Skills**: [skills/](skills/) - PRD and Milhouse skill documentation
 
 ## License
 
@@ -450,7 +450,7 @@ MIT
 
 ## Version
 
-**Ralph Version**: 2.0.0  
+**Milhouse Version**: 2.0.0  
 **Last Updated**: February 3, 2026  
 **Tested On**: macOS (Darwin)  
 **Required macOS**: 10.15+ (for LaunchAgent support)

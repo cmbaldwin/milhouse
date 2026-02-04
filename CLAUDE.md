@@ -1,10 +1,10 @@
-# Ralph Project - AI Agent Instructions
+# Milhouse Project - AI Agent Instructions
 
 ## Project Overview
 
-Ralph is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, AMP) and can run both manually and automatically via scheduled tasks.
+Milhouse is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, AMP) and can run both manually and automatically via scheduled tasks.
 
-**Repository**: `/Users/cody/Dev/ralph`
+**Repository**: `/Users/cody/Dev/milhouse`
 
 ## Documentation Search with qmd
 
@@ -13,8 +13,8 @@ This project is indexed with **qmd** for fast documentation search. Use this FIR
 ### When to Use qmd
 
 **ALWAYS search documentation before:**
-- Making changes to core scripts (ralph.sh, ralph-autorun.sh, etc.)
-- Answering questions about how Ralph works
+- Making changes to core scripts (milhouse.sh, milhouse-autorun.sh, etc.)
+- Answering questions about how Milhouse works
 - Understanding system architecture or design decisions
 - Finding examples of similar functionality
 - Checking existing conventions or patterns
@@ -23,31 +23,31 @@ This project is indexed with **qmd** for fast documentation search. Use this FIR
 
 **Keyword search (fast, default):**
 ```bash
-qmd search "AutoRunner" -c ralph
-qmd search "PRD structure" -c ralph
-qmd search "branch management" -c ralph
+qmd search "AutoRunner" -c milhouse
+qmd search "PRD structure" -c milhouse
+qmd search "branch management" -c milhouse
 ```
 
 **Get specific documents:**
 ```bash
-qmd get qmd://ralph/readme.md
-qmd get qmd://ralph/ralph-autorunner-readme.md
+qmd get qmd://milhouse/readme.md
+qmd get qmd://milhouse/milhouse-autorunner-readme.md
 ```
 
 **List all documentation:**
 ```bash
-qmd ls ralph
+qmd ls milhouse
 ```
 
 ### Available Documentation
 
-The `ralph` qmd collection includes:
+The `milhouse` qmd collection includes:
 - **readme.md** - Main system documentation
-- **ralph-autorunner-readme.md** - Auto-runner configuration and usage
-- **ralph-system-complete-documentation.md** - Complete system reference
+- **milhouse-autorunner-readme.md** - Auto-runner configuration and usage
+- **milhouse-system-complete-documentation.md** - Complete system reference
 - **agents.md** - Agent behavior and patterns
 - **skills/prd/skill.md** - PRD management skill
-- **skills/ralph/skill.md** - Ralph workflow skill
+- **skills/milhouse/skill.md** - Milhouse workflow skill
 - **prompt.md** - Legacy prompt format
 - **prompt-example-rails.md** - Rails-specific example
 
@@ -55,14 +55,14 @@ The `ralph` qmd collection includes:
 
 1. **Before any code changes:**
    ```bash
-   qmd search "relevant keywords" -c ralph
+   qmd search "relevant keywords" -c milhouse
    ```
 
 2. **Review the results** - Read the relevant sections
 
 3. **Get full documents if needed:**
    ```bash
-   qmd get qmd://ralph/path/to/file.md
+   qmd get qmd://milhouse/path/to/file.md
    ```
 
 4. **Make informed changes** based on existing patterns
@@ -70,18 +70,18 @@ The `ralph` qmd collection includes:
 ## Project Structure
 
 ```
-ralph/
-├── ralph.sh                           # Main agent script (multi-backend)
-├── ralph-copilot.sh                   # GitHub Copilot CLI variant
-├── ralph-autorun.sh                   # Auto-runner daemon script
-├── ralph-autorun                      # Auto-runner management CLI
+milhouse/
+├── milhouse.sh                           # Main agent script (multi-backend)
+├── milhouse-copilot.sh                   # GitHub Copilot CLI variant
+├── milhouse-autorun.sh                   # Auto-runner daemon script
+├── milhouse-autorun                      # Auto-runner management CLI
 ├── CLAUDE.md                          # This file
 ├── README.md                          # Main documentation
-├── Ralph-AutoRunner-README.md         # Auto-runner docs
+├── Milhouse-AutoRunner-README.md         # Auto-runner docs
 ├── agents.md                          # Agent patterns
 ├── skills/                            # Skill definitions
 │   ├── prd/SKILL.md                  # PRD management
-│   └── ralph/SKILL.md                # Ralph workflow
+│   └── milhouse/SKILL.md                # Milhouse workflow
 └── flowchart/                         # Interactive visualization
     ├── src/                          # React Flow app
     └── README.md                     # Visualization docs
@@ -90,16 +90,16 @@ ralph/
 ## Core Concepts
 
 ### PRD Files (prd.json)
-- Located in `your-project/.ralph/prd.json`
+- Located in `your-project/.milhouse/prd.json`
 - Contains user stories with `passes` boolean field
-- Ralph processes stories where `passes: false`
+- Milhouse processes stories where `passes: false`
 - Updates `passes: true` when complete
 
 ### CLAUDE.md Files
 - Project-specific agent instructions
-- Located in `your-project/.ralph/CLAUDE.md`
+- Located in `your-project/.milhouse/CLAUDE.md`
 - Defines quality checks, conventions, tech stack
-- Used by ralph.sh to generate prompts
+- Used by milhouse.sh to generate prompts
 
 ### Progress Tracking
 - `progress.txt` - Append-only learning journal
@@ -108,18 +108,18 @@ ralph/
 
 ### Auto-Runner
 - System-wide service (macOS LaunchAgent)
-- Scans `~/dev/**/.ralph/prd.json` hourly
-- Runs Ralph on first incomplete PRD found
+- Scans `~/dev/**/.milhouse/prd.json` hourly
+- Runs Milhouse on first incomplete PRD found
 - Configurable operating hours (default: 9 PM - 7 AM)
-- Managed via `ralph-autorun` command
+- Managed via `milhouse-autorun` command
 
 ## Development Guidelines
 
-### Making Changes to Ralph
+### Making Changes to Milhouse
 
 1. **Search documentation first:**
    ```bash
-   qmd search "topic" -c ralph
+   qmd search "topic" -c milhouse
    ```
 
 2. **Understand existing patterns** - Read relevant docs
@@ -132,7 +132,7 @@ ralph/
 
 ### Code Style
 
-- **Bash scripts**: Follow existing patterns in ralph.sh
+- **Bash scripts**: Follow existing patterns in milhouse.sh
 - **Use oroshi patterns**: Check oroshi integration in codebase
 - **Configuration**: Support both env vars and config files
 - **Logging**: Log important events with timestamps
@@ -140,29 +140,29 @@ ralph/
 
 ### Testing Changes
 
-**Test ralph.sh:**
+**Test milhouse.sh:**
 ```bash
-cd /Users/cody/Dev/ralph
-./ralph.sh --help
+cd /Users/cody/Dev/milhouse
+./milhouse.sh --help
 ```
 
 **Test auto-runner:**
 ```bash
-ralph-autorun test  # Dry run
-ralph-autorun logs  # Check recent activity
+milhouse-autorun test  # Dry run
+milhouse-autorun logs  # Check recent activity
 ```
 
 **Verify qmd index is current:**
 ```bash
 qmd status
-qmd search "test query" -c ralph
+qmd search "test query" -c milhouse
 ```
 
 ## Common Tasks
 
 ### Updating Documentation
 
-When you modify README.md, Ralph-AutoRunner-README.md, or other markdown files:
+When you modify README.md, Milhouse-AutoRunner-README.md, or other markdown files:
 
 1. **Update the qmd index:**
    ```bash
@@ -171,14 +171,14 @@ When you modify README.md, Ralph-AutoRunner-README.md, or other markdown files:
 
 2. **Verify the changes are indexed:**
    ```bash
-   qmd search "new content" -c ralph
+   qmd search "new content" -c milhouse
    ```
 
 ### Adding New Features
 
 1. **Search for similar features:**
    ```bash
-   qmd search "feature name" -c ralph
+   qmd search "feature name" -c milhouse
    ```
 
 2. **Follow existing patterns** found in documentation
@@ -195,7 +195,7 @@ When you modify README.md, Ralph-AutoRunner-README.md, or other markdown files:
 **If qmd returns no results:**
 - Check collection status: `qmd status`
 - Update index: `qmd update`
-- List files: `qmd ls ralph`
+- List files: `qmd ls milhouse`
 
 **If changes aren't reflected:**
 - The qmd index updates on `qmd update`
@@ -203,7 +203,7 @@ When you modify README.md, Ralph-AutoRunner-README.md, or other markdown files:
 
 ## Best Practices
 
-### For AI Agents Working on Ralph
+### For AI Agents Working on Milhouse
 
 1. ✅ **DO** search qmd before making changes
 2. ✅ **DO** read existing documentation thoroughly
@@ -226,33 +226,33 @@ When you modify README.md, Ralph-AutoRunner-README.md, or other markdown files:
 
 ### qmd Commands
 ```bash
-qmd search "query" -c ralph          # Search ralph docs (fast)
-qmd ls ralph                         # List all files
-qmd get qmd://ralph/readme.md        # Get specific file
+qmd search "query" -c milhouse          # Search milhouse docs (fast)
+qmd ls milhouse                         # List all files
+qmd get qmd://milhouse/readme.md        # Get specific file
 qmd status                           # Check index status
 qmd update                           # Update index after doc changes
 ```
 
-### Ralph Commands
+### Milhouse Commands
 ```bash
-ralph-autorun status                 # Check auto-runner status
-ralph-autorun logs                   # View recent activity
-ralph-autorun schedule               # Show operating hours
-ralph-autorun test                   # Dry run (doesn't execute)
+milhouse-autorun status                 # Check auto-runner status
+milhouse-autorun logs                   # View recent activity
+milhouse-autorun schedule               # Show operating hours
+milhouse-autorun test                   # Dry run (doesn't execute)
 ```
 
 ### File Locations
-- Ralph repo: `/Users/cody/Dev/ralph`
-- Auto-runner config: `~/.ralph-autorun.conf`
-- Auto-runner logs: `~/.ralph-autorun.log`
+- Milhouse repo: `/Users/cody/Dev/milhouse`
+- Auto-runner config: `~/.milhouse-autorun.conf`
+- Auto-runner logs: `~/.milhouse-autorun.log`
 - qmd index: `~/.cache/qmd/index.sqlite`
 - Skills directory: `~/.claude/skills/`
 
 ## Emergency Contacts / References
 
 - Main documentation: [README.md](README.md)
-- Auto-runner docs: [Ralph-AutoRunner-README.md](Ralph-AutoRunner-README.md)
-- System reference: [Ralph-System-Complete-Documentation.md](Ralph-System-Complete-Documentation.md)
+- Auto-runner docs: [Milhouse-AutoRunner-README.md](Milhouse-AutoRunner-README.md)
+- System reference: [Milhouse-System-Complete-Documentation.md](Milhouse-System-Complete-Documentation.md)
 - qmd skill: `~/.claude/skills/qmd.md`
 
 ---

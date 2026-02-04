@@ -1,7 +1,7 @@
 {
-  "name": "ralph",
+  "name": "milhouse",
   "version": "2.0.0",
-  "description": "Ralph - Autonomous AI agent system for PRD-driven development",
+  "description": "Milhouse - Autonomous AI agent system for PRD-driven development",
   "scripts": {
     "flowchart:dev": "cd flowchart && npm run dev",
     "flowchart:build": "cd flowchart && npm run build"
@@ -13,8 +13,9 @@
     "prd",
     "automation",
     "claude",
-    "copilot"
+    "copilot",
+    "milhouse"
   ],
-  "author": "",
+  "author": "Cody Baldwin",
   "license": "MIT"
 }
