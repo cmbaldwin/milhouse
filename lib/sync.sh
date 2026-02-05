@@ -59,9 +59,45 @@ update_claude_md() {
     local instance_dir="$1"
     local project_dir="$2"
     local claude_md="$instance_dir/CLAUDE.md"
+    local project_name="$(basename "$project_dir")"
 
-    # This will be expanded in next task
-    echo "  → CLAUDE.md update (to be implemented)"
+    # Check if parent project has CLAUDE.md
+    local parent_claude="$project_dir/CLAUDE.md"
+
+    if [[ ! -f "$claude_md" ]]; then
+        echo "  + Creating CLAUDE.md"
+        create_claude_md_template "$instance_dir" "$project_name"
+        return
+    fi
+
+    # Check if CLAUDE.md has qmd section
+    if ! grep -q "qmd search" "$claude_md" 2>/dev/null; then
+        echo "  + Adding qmd section to CLAUDE.md"
+
+        # Add qmd section after project overview
+        local qmd_section=$(cat << EOF
+
+## Documentation Search with qmd
+
+This project is indexed with qmd. Search documentation before making changes:
+
+\`\`\`bash
+qmd search "query" -c $project_name
+qmd get qmd://$project_name/readme.md
+qmd ls $project_name
+\`\`\`
+
+EOF
+)
+
+        # Insert after first heading
+        awk -v section="$qmd_section" '/^##/ && !done {print section; done=1} {print}' "$claude_md" > "$claude_md.tmp"
+        mv "$claude_md.tmp" "$claude_md"
+
+        echo "  ✓ Updated CLAUDE.md with qmd instructions"
+    else
+        echo "  ✓ CLAUDE.md already has qmd section"
+    fi
 }
 
 install_milhouse() {
