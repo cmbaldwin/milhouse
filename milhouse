@@ -24,9 +24,12 @@ Usage:
 
   milhouse autorun start            Start autorunner daemon
   milhouse autorun stop             Stop autorunner daemon
+  milhouse autorun restart          Restart autorunner daemon
   milhouse autorun status           Check autorunner status
   milhouse autorun logs             View autorunner logs
+  milhouse autorun watch            Watch autorunner logs in real-time
   milhouse autorun schedule         Show/edit schedule
+  milhouse autorun config [edit]    View or edit configuration
   milhouse autorun test             Dry run (find PRDs, don't execute)
 
   milhouse sync                     Sync all milhouse instances in ~/dev
@@ -50,6 +53,8 @@ Examples:
   milhouse run --tool opencode      Run with OpenCode
   milhouse run --tool amp           Run with AMP
   milhouse autorun start            Start background automation
+  milhouse autorun config           View configuration
+  milhouse autorun config edit      Edit schedule configuration
   milhouse sync                     Update all instances
   milhouse qmd setup                Configure qmd for this project
   milhouse ruby setup               Set up Ruby/Rails skills and MCP servers
@@ -69,9 +74,12 @@ main() {
             case "${1:-}" in
                 start) autorun_start ;;
                 stop) autorun_stop ;;
+                restart) autorun_restart ;;
                 status) autorun_status ;;
                 logs) autorun_logs ;;
+                watch) autorun_watch ;;
                 schedule) autorun_schedule ;;
+                config) shift; autorun_config "$@" ;;
                 test) autorun_test ;;
                 daemon) autorun_daemon ;;
                 *) echo "Unknown autorun command: ${1:-}"; show_help; exit 1 ;;

@@ -193,7 +193,7 @@ autorun_watch() {
 
 # View or edit configuration
 autorun_config() {
-  local edit_mode="$1"
+  local edit_mode="${1:-}"
 
   if [ ! -f "$CONFIG_FILE" ]; then
     echo "Creating default configuration..."
@@ -211,20 +211,20 @@ EOF
   if [ "$edit_mode" = "edit" ]; then
     ${EDITOR:-nano} "$CONFIG_FILE"
     echo "✓ Configuration updated"
-    echo "  Run 'milhouse-autorun restart' to apply changes"
+    echo "  Run 'milhouse autorun restart' to apply changes"
   else
     echo "Current configuration:"
     echo ""
     cat "$CONFIG_FILE"
     echo ""
-    echo "To edit: milhouse-autorun config edit"
+    echo "To edit: milhouse autorun config edit"
   fi
 }
 
 # Show current schedule and status
 autorun_schedule() {
   if [ ! -f "$CONFIG_FILE" ]; then
-    echo "No configuration file found. Run 'milhouse-autorun config' to create one."
+    echo "No configuration file found. Run 'milhouse autorun config' to create one."
     return 1
   fi
 
