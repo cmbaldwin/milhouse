@@ -134,29 +134,50 @@ Co-Authored-By: Ralph (Autonomous Agent) <ralph@example.com>
 
 ## Multi-Backend Support
 
-Milhouse supports four AI backends:
+Milhouse supports four AI backends with a **standardized interface** for consistent behavior:
+
+### Output Control (All Backends)
+
+```bash
+# Verbose mode (default) - streaming output, detailed logs
+milhouse run --verbose 25
+milhouse run --tool copilot --verbose 25
+
+# Quiet mode - minimal output, final results only
+milhouse run --quiet 25
+milhouse run --tool claude --quiet 25
+```
+
+**Key Differences:**
+- **Verbose (default)**: Streaming output, real-time progress, detailed logs
+- **Quiet**: Minimal output, only completion messages and final results
 
 ### 1. Claude CLI (Default)
 
 ```bash
 milhouse run 25
 milhouse run --tool claude 25
+milhouse run --tool claude --verbose 25   # Streaming output
+milhouse run --tool claude --quiet 25      # Minimal output
 
 # Features:
 - Playwright MCP support (browser automation)
 - Full tool access
 - Preferred for browser testing
-- Uses: claude --dangerously-skip-permissions --print < CLAUDE.md
+- Verbose: claude --dangerously-skip-permissions < CLAUDE.md
+- Quiet: claude --dangerously-skip-permissions --print < CLAUDE.md
 ```
 
 ### 2. GitHub Copilot CLI
 
 ```bash
 milhouse run --tool copilot 25
+milhouse run --tool copilot --verbose 25   # Default behavior
 
 # Features:
 - Native GitHub integration
 - Uses --allow-all for permissions
+- Streams output by default
 - Command: gh copilot --allow-all -p "prompt"
 ```
 
@@ -164,9 +185,11 @@ milhouse run --tool copilot 25
 
 ```bash
 milhouse run --tool opencode 25
+milhouse run --tool opencode --verbose 25  # Default behavior
 
 # Features:
 - Open source AI coding assistant
+- Streams output by default
 - Command: opencode run "prompt"
 ```
 
@@ -174,11 +197,22 @@ milhouse run --tool opencode 25
 
 ```bash
 milhouse run --tool amp 15
+milhouse run --tool amp --verbose 15       # Default behavior
 
 # Features:
 - Uses prompt.md format instead of CLAUDE.md
+- Streams output by default
 - Command: amp --dangerously-allow-all
 ```
+
+### Standardized Interface Design
+
+All backends now provide consistent verbosity behavior:
+
+1. **Default Mode**: Verbose/streaming output (matches Copilot's natural behavior)
+2. **Quiet Mode**: Available via `--quiet` flag (primarily for Claude's `--print` mode)
+3. **Output Capture**: All backends use `2>&1 | tee /dev/stderr` for consistent logging
+4. **Completion Detection**: All backends output `<promise>COMPLETE</promise>` signal
 
 ## Auto-Runner System
 
@@ -298,6 +332,31 @@ find ~/dev -name "prd.json" ! -path "*/archive/*"
 # Runs first incomplete PRD found
 # Only one Ralph instance at a time
 ```
+
+### Pattern: Standardized Output Interface
+
+All AI backends now provide consistent verbosity control:
+
+**Problem:** Claude CLI used `--print` flag (quiet mode) while Copilot/OpenCode/AMP streamed verbose output by default, creating inconsistent logging experiences.
+
+**Solution:** Standardized interface with explicit flags:
+- Default is **verbose** mode (streaming output) for all backends
+- `--quiet` flag enables minimal output (primarily for Claude's `--print` mode)
+- `--verbose` flag explicitly enables streaming (matches Copilot's natural behavior)
+
+```bash
+# All backends support same interface
+milhouse run --verbose 25         # Streaming output (default)
+milhouse run --quiet 25           # Minimal output
+milhouse run --tool claude --verbose 25
+milhouse run --tool copilot --quiet 25
+```
+
+**Implementation:**
+- Claude: Removes `--print` flag by default, adds it only with `--quiet`
+- Other backends: Already stream by default, `--quiet` documented but not yet implemented
+- All use `2>&1 | tee /dev/stderr` for consistent output capture
+- Agent shows verbosity level in startup message: `Output: verbose` or `Output: quiet`
 
 ## Troubleshooting
 

@@ -6,12 +6,21 @@ run_agent() {
     # Parse arguments - support both positional and --tool flag
     local turns="25"
     local tool="claude"
+    local verbose="true"  # Default to verbose (streaming) output
     
     while [[ $# -gt 0 ]]; do
         case $1 in
             --tool)
                 tool="$2"
                 shift 2
+                ;;
+            --quiet)
+                verbose="false"
+                shift
+                ;;
+            --verbose)
+                verbose="true"
+                shift
                 ;;
             [0-9]*)
                 turns="$1"
@@ -97,7 +106,7 @@ run_agent() {
         echo ""
     fi
 
-    echo "Starting Milhouse - Tool: $tool - Max iterations: $turns"
+    echo "Starting Milhouse - Tool: $tool - Max iterations: $turns - Output: $([ "$verbose" = "true" ] && echo "verbose" || echo "quiet")"
 
     # Main agent execution loop
     for i in $(seq 1 $turns); do
@@ -106,19 +115,29 @@ run_agent() {
         echo "  Milhouse Iteration $i of $turns ($tool)"
         echo "==============================================================="
 
+        # Standardized tool invocation with consistent verbosity handling
         case "$tool" in
             claude)
-                OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+                if [ "$verbose" = "true" ]; then
+                    # Verbose mode: streaming output (no --print flag)
+                    OUTPUT=$(claude --dangerously-skip-permissions < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+                else
+                    # Quiet mode: minimal output (with --print flag)
+                    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+                fi
                 ;;
             copilot)
                 PROMPT=$(cat "$SCRIPT_DIR/CLAUDE.md")
+                # Copilot streams by default, capture output uniformly
                 OUTPUT=$(gh copilot --allow-all -p "$PROMPT" 2>&1 | tee /dev/stderr) || true
                 ;;
             opencode)
                 PROMPT=$(cat "$SCRIPT_DIR/CLAUDE.md")
+                # OpenCode streams by default, capture output uniformly
                 OUTPUT=$(opencode run "$PROMPT" 2>&1 | tee /dev/stderr) || true
                 ;;
             amp)
+                # AMP streams by default, capture output uniformly
                 OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
                 ;;
         esac

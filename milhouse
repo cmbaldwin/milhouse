@@ -19,6 +19,8 @@ Milhouse - Autonomous AI Agent System
 Usage:
   milhouse run [turns]                     Run milhouse agent (default: 25 turns)
   milhouse run --tool <tool> [turns]       Run with specific tool (claude|copilot|opencode|amp)
+  milhouse run --verbose [turns]           Run with verbose/streaming output (default)
+  milhouse run --quiet [turns]             Run with minimal output
 
   milhouse autorun start            Start autorunner daemon
   milhouse autorun stop             Stop autorunner daemon
@@ -41,8 +43,10 @@ Usage:
   milhouse help                     Show this help
 
 Examples:
-  milhouse run 15                   Run for 15 turns
-  milhouse run --tool copilot       Run with GitHub Copilot
+  milhouse run 15                   Run for 15 turns (verbose output)
+  milhouse run --quiet 10           Run for 10 turns (minimal output)
+  milhouse run --tool copilot       Run with GitHub Copilot (verbose)
+  milhouse run --tool claude --quiet Run with Claude (quiet mode)
   milhouse run --tool opencode      Run with OpenCode
   milhouse run --tool amp           Run with AMP
   milhouse autorun start            Start background automation
