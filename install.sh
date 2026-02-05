@@ -10,9 +10,9 @@ mkdir -p ~/.local/bin
 cp milhouse ~/.local/bin/milhouse
 chmod +x ~/.local/bin/milhouse
 
-# Copy lib directory
+# Copy lib directory (preserve structure for $SCRIPT_DIR/lib/* paths)
 mkdir -p ~/.local/lib/milhouse
-cp -r lib/* ~/.local/lib/milhouse/
+cp -r lib ~/.local/lib/milhouse/
 
 # Update milhouse to use global lib path
 sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="$HOME/.local/lib/milhouse"|' ~/.local/bin/milhouse
@@ -39,7 +39,7 @@ if command -v ruby &> /dev/null; then
     read -p "Install Ruby/Rails skills and MCP servers? [Y/n] " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        source "$HOME/.local/lib/milhouse/ruby.sh"
+        source "$HOME/.local/lib/milhouse/lib/ruby.sh"
         ruby_setup
     else
         echo ""
