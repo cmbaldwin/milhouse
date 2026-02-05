@@ -60,6 +60,7 @@ main() {
                 logs) autorun_logs ;;
                 schedule) autorun_schedule ;;
                 test) autorun_test ;;
+                daemon) autorun_daemon ;;
                 *) echo "Unknown autorun command: ${1:-}"; show_help; exit 1 ;;
             esac
             ;;

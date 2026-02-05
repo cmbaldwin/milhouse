@@ -254,3 +254,84 @@ autorun_schedule() {
     fi
   fi
 }
+
+# Daemon mode - called by LaunchAgent
+autorun_daemon() {
+    load_config
+
+    log "=========================================="
+    log "Milhouse Auto-Runner: Starting check"
+    log "=========================================="
+
+    # Check schedule
+    if ! check_schedule; then
+        exit 0
+    fi
+
+    # Find incomplete PRDs
+    log "Scanning for incomplete PRDs in ~/dev..."
+
+    local prd_file=$(find ~/dev -name "prd.json" -path "*/.milhouse/*" -not -path "*/archive/*" -not -path "*/.git/*" 2>/dev/null | while read prd; do
+        local incomplete=$(jq '[.userStories[] | select(.passes == false)] | length' "$prd" 2>/dev/null)
+        if [[ $incomplete -gt 0 ]]; then
+            echo "$prd"
+            break
+        fi
+    done)
+
+    if [[ -z "$prd_file" ]]; then
+        log "No incomplete PRDs found"
+        log "=========================================="
+        exit 0
+    fi
+
+    log "Found PRD: $prd_file"
+
+    local milhouse_dir="$(dirname "$prd_file")"
+    local incomplete_count=$(jq '[.userStories[] | select(.passes == false)] | length' "$prd_file" 2>/dev/null)
+
+    log "PRD location: $prd_file"
+    log "Milhouse directory: $milhouse_dir"
+    log "Incomplete stories: $incomplete_count"
+    log "=========================================="
+
+    # Check if milhouse is already running
+    if pgrep -f "milhouse run" > /dev/null 2>&1; then
+        log "Milhouse is already running, skipping this iteration"
+        exit 0
+    fi
+
+    log "RUNNING MILHOUSE IN: $milhouse_dir"
+    cd "$milhouse_dir" || exit 1
+
+    # Run milhouse
+    if command -v milhouse &> /dev/null; then
+        milhouse run 25 2>&1 | tee -a "$LOG_FILE"
+    else
+        log "ERROR: milhouse command not found"
+        exit 1
+    fi
+
+    log "Milhouse run completed"
+    log "=========================================="
+}
+
+# Test mode - dry run showing what would be executed
+autorun_test() {
+    echo "TEST MODE: Scanning for incomplete PRDs..."
+    echo ""
+
+    find ~/dev -name "prd.json" -path "*/.milhouse/*" -not -path "*/archive/*" -not -path "*/.git/*" 2>/dev/null | while read prd; do
+        local incomplete=$(jq '[.userStories[] | select(.passes == false)] | length' "$prd" 2>/dev/null)
+        if [[ $incomplete -gt 0 ]]; then
+            echo "Would run: $prd"
+            echo "  Incomplete stories: $incomplete"
+            echo "  Directory: $(dirname "$prd")"
+            echo ""
+        fi
+    done
+
+    if [ -z "$(find ~/dev -name "prd.json" -path "*/.milhouse/*" -not -path "*/archive/*" -not -path "*/.git/*" 2>/dev/null | head -1)" ]; then
+        echo "No milhouse PRDs found in ~/dev"
+    fi
+}
