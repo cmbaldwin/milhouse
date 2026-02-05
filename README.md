@@ -1,3 +1,5 @@
+![Milhouse](milhouse-eyebrows.gif)
+
 # Milhouse - Autonomous AI Agent System
 
 **Milhouse** is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends and enables iterative, memory-persistent development through structured file-based context.
