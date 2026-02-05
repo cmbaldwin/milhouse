@@ -32,4 +32,20 @@ fi
 echo ""
 echo "Installation complete!"
 echo ""
+
+# Offer Ruby/Rails setup
+if command -v ruby &> /dev/null; then
+    echo "Ruby detected! Milhouse includes opinionated Ruby/Rails defaults."
+    read -p "Install Ruby/Rails skills and MCP servers? [Y/n] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        source "$HOME/.local/lib/milhouse/ruby.sh"
+        ruby_setup
+    else
+        echo ""
+        echo "You can install Ruby/Rails tools later with: milhouse ruby setup"
+    fi
+fi
+
+echo ""
 echo "Try: milhouse help"

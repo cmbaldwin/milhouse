@@ -8,6 +8,7 @@ source "$SCRIPT_DIR/lib/agent.sh"
 source "$SCRIPT_DIR/lib/autorun.sh"
 source "$SCRIPT_DIR/lib/sync.sh"
 source "$SCRIPT_DIR/lib/qmd.sh"
+source "$SCRIPT_DIR/lib/ruby.sh"
 
 VERSION="2.0.0"
 
@@ -31,6 +32,10 @@ Usage:
   milhouse qmd update               Update qmd index
   milhouse install [project]        Install milhouse into project
 
+  milhouse ruby setup               Install Ruby/Rails skills and MCP servers
+  milhouse ruby status              Check Ruby/Rails installation status
+  milhouse ruby help                Show Ruby/Rails help
+
   milhouse version                  Show version
   milhouse help                     Show this help
 
@@ -40,6 +45,7 @@ Examples:
   milhouse autorun start            Start background automation
   milhouse sync                     Update all instances
   milhouse qmd setup                Configure qmd for this project
+  milhouse ruby setup               Set up Ruby/Rails skills and MCP servers
 
 EOF
 }
@@ -79,6 +85,17 @@ main() {
         install)
             shift
             install_milhouse "$@"
+            ;;
+        ruby)
+            shift
+            case "${1:-}" in
+                setup) ruby_setup ;;
+                status) ruby_status ;;
+                skills) ruby_install_skills ;;
+                mcp) ruby_install_mcp_servers ;;
+                help) ruby_help ;;
+                *) ruby_help ;;
+            esac
             ;;
         version)
             echo "Milhouse version $VERSION"

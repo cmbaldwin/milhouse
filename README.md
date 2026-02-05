@@ -256,6 +256,67 @@ See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
 6. **Complete**
    - When all stories have `passes: true`, Milhouse reports completion
 
+## Ruby/Rails Defaults
+
+Milhouse is an opinionated Ruby AI automation tool. It includes curated skills and MCP servers for Ruby/Rails development.
+
+### Quick Setup
+
+```bash
+milhouse ruby setup
+```
+
+### Included Skills
+
+| Skill | Command | Description |
+|-------|---------|-------------|
+| [Rails System Test Analyzer](https://github.com/robzolkos/skill-rails-system-test-analyzer) | `/rails-system-test-analyzer` | Analyze system tests for conversion to faster controller tests |
+| [Rails Upgrade Assistant](https://github.com/maquina-app/rails-upgrade-skill) | `/rails-upgrade-assistant` | Upgrade Rails 7.0→8.1.1 with guided analysis |
+| [RubyCritic](https://github.com/esparkman/claude-rubycritic-skill) | (model-invoked) | Analyze code quality, complexity, and smells |
+
+### Included MCP Server
+
+| Server | Description |
+|--------|-------------|
+| [rails-mcp-server](https://github.com/maquina-app/rails-mcp-server) | Rails project tools: routes, models, schema, code execution |
+
+### Usage Examples
+
+**Analyze system tests:**
+
+```text
+/rails-system-test-analyzer test/system/users_test.rb
+```
+
+**Upgrade Rails:**
+
+```text
+/rails-upgrade-assistant
+"Upgrade my Rails app to 8.0"
+```
+
+**Analyze code quality:**
+
+```text
+"Analyze the code quality of app/models"
+"Show me the 5 worst files that need refactoring"
+```
+
+**Rails MCP tools (available automatically):**
+
+- `get_routes` - View Rails routes
+- `analyze_models` - Analyze model relationships
+- `get_schema` - View database schema
+- `execute_ruby` - Run sandboxed Ruby code
+
+### Check Status
+
+```bash
+milhouse ruby status
+```
+
+See [defaults/ruby/README.md](defaults/ruby/README.md) for full documentation.
+
 ## AI Backend Support
 
 ### Claude CLI (`milhouse.sh --tool claude`)

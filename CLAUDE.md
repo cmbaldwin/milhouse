@@ -87,6 +87,36 @@ milhouse/
     └── README.md                     # Visualization docs
 ```
 
+## Ruby/Rails Defaults
+
+Milhouse is an opinionated Ruby AI automation tool with curated skills and MCP servers.
+
+### Setup
+
+```bash
+milhouse ruby setup    # Install all Ruby/Rails tools
+milhouse ruby status   # Check installation status
+```
+
+### Included Skills
+
+| Skill | Command | Source |
+|-------|---------|--------|
+| Rails System Test Analyzer | `/rails-system-test-analyzer` | [robzolkos/skill-rails-system-test-analyzer](https://github.com/robzolkos/skill-rails-system-test-analyzer) |
+| Rails Upgrade Assistant | `/rails-upgrade-assistant` | [maquina-app/rails-upgrade-skill](https://github.com/maquina-app/rails-upgrade-skill) |
+| RubyCritic | (model-invoked) | [esparkman/claude-rubycritic-skill](https://github.com/esparkman/claude-rubycritic-skill) |
+
+### Included MCP Server
+
+| Server | Source |
+|--------|--------|
+| rails-mcp-server | [maquina-app/rails-mcp-server](https://github.com/maquina-app/rails-mcp-server) |
+
+### Key Files
+
+- `lib/ruby.sh` - Ruby/Rails setup functions
+- `defaults/ruby/README.md` - Full Ruby/Rails documentation
+
 ## Core Concepts
 
 ### PRD Files (prd.json)
