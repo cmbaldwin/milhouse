@@ -47,6 +47,7 @@ milhouse update
 ```
 
 This will:
+
 - Pull the latest changes from the repository
 - Reinstall to `~/.local/bin/milhouse`
 - Update the lib directory
