@@ -1,8 +1,19 @@
 # Milhouse - Autonomous AI Agent System
 
-Milhouse is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, or AMP) and can run both manually and automatically via scheduled tasks.
+**Milhouse** is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends and enables iterative, memory-persistent development through structured file-based context.
 
-## Overview
+## Agent Architecture
+
+Milhouse is designed for **stateless agent instances** with **persistent memory via files**:
+
+- **No memory between iterations** - Each run is a fresh agent with clean context
+- **Memory persists through:**
+  - `prd.json` - Task list and completion status
+  - `progress.txt` - Append-only learning journal
+  - `CLAUDE.md` - Project conventions and patterns
+  - Git history - Atomic commits per story
+
+## How It Works
 
 Milhouse works by:
 
@@ -28,6 +39,17 @@ cd milhouse
 milhouse version
 milhouse help
 ```
+
+### Update Milhouse
+
+```bash
+milhouse update
+```
+
+This will:
+- Pull the latest changes from the repository
+- Reinstall to `~/.local/bin/milhouse`
+- Update the lib directory
 
 ### Setup a Project
 
@@ -87,26 +109,65 @@ milhouse run
 
 ### Manual Execution
 
-**Run with Claude CLI (recommended for Playwright MCP support):**
+**Run with Claude CLI (default, recommended for Playwright MCP support):**
 
 ```bash
 cd your-project/.milhouse
-./milhouse.sh --tool claude 25
+milhouse run 25
+# or explicitly:
+milhouse run --tool claude 25
 ```
 
 **Run with GitHub Copilot CLI:**
 
 ```bash
-cd your-project/.milhouse
-./milhouse-copilot.sh 25
+milhouse run --tool copilot 25
 ```
+
+**Run with OpenCode:**
+
+```bash
+milhouse run --tool opencode 25
+```
+
+**Run with AMP:**
+
+```bash
+milhouse run --tool amp 15
+```
+
+### Backend Comparison
+
+| Backend  | Command                                         | CLAUDE.md | prompt.md | Browser MCP | GitHub Integration | MCP Support |
+| -------- | ----------------------------------------------- | --------- | --------- | ----------- | ------------------ | ----------- |
+| Claude   | `claude --dangerously-skip-permissions --print` | ✓         | ✗         | ✓           | ✗                  | Full        |
+| Copilot  | `gh copilot --allow-all -p`                     | ✓         | ✗         | ✗           | ✓                  | Partial     |
+| OpenCode | `opencode run`                                  | ✓         | ✗         | TBD         | ✗                  | TBD         |
+| AMP      | `amp --dangerously-allow-all`                   | ✗         | ✓         | ✗           | ✗                  | Full        |
+
+**Recommendation:** Use Claude CLI for browser automation tasks, Copilot for GitHub-integrated workflows.
+
+### Agent Interoperability
+
+Milhouse uses **tool-agnostic prompt files** to enable cross-agent compatibility:
+
+- **CLAUDE.md** - Universal format for Claude, Copilot, OpenCode
+- **prompt.md** - AMP-specific format
+- **prd.json** - Machine-readable task specification (JSON)
+- **progress.txt** - Human and AI readable learning journal (Markdown)
+
+Agents can hand off work to each other by reading the same files.
+
+./milhouse-copilot.sh 25
+
+````
 
 **Run with AMP:**
 
 ```bash
 cd your-project/.milhouse
 ./milhouse.sh --tool amp 15
-```
+````
 
 ### Automatic Execution (Milhouse Auto-Runner)
 
@@ -268,16 +329,16 @@ milhouse ruby setup
 
 ### Included Skills
 
-| Skill | Command | Description |
-|-------|---------|-------------|
+| Skill                                                                                       | Command                       | Description                                                    |
+| ------------------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------- |
 | [Rails System Test Analyzer](https://github.com/robzolkos/skill-rails-system-test-analyzer) | `/rails-system-test-analyzer` | Analyze system tests for conversion to faster controller tests |
-| [Rails Upgrade Assistant](https://github.com/maquina-app/rails-upgrade-skill) | `/rails-upgrade-assistant` | Upgrade Rails 7.0→8.1.1 with guided analysis |
-| [RubyCritic](https://github.com/esparkman/claude-rubycritic-skill) | (model-invoked) | Analyze code quality, complexity, and smells |
+| [Rails Upgrade Assistant](https://github.com/maquina-app/rails-upgrade-skill)               | `/rails-upgrade-assistant`    | Upgrade Rails 7.0→8.1.1 with guided analysis                   |
+| [RubyCritic](https://github.com/esparkman/claude-rubycritic-skill)                          | (model-invoked)               | Analyze code quality, complexity, and smells                   |
 
 ### Included MCP Server
 
-| Server | Description |
-|--------|-------------|
+| Server                                                              | Description                                                 |
+| ------------------------------------------------------------------- | ----------------------------------------------------------- |
 | [rails-mcp-server](https://github.com/maquina-app/rails-mcp-server) | Rails project tools: routes, models, schema, code execution |
 
 ### Usage Examples

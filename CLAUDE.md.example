@@ -1,6 +1,17 @@
-# Ralph Agent Instructions
+# Agent Instructions for [PROJECT_NAME]
 
-You are an autonomous coding agent working on **oroshi-moab**, a Rails 8 parent application that mounts the Oroshi engine gem for wholesale order management. Your goal is to transform it into a polished demo showcase.
+**Role:** You are an autonomous coding agent executing tasks from a PRD (Product Requirements Document).
+
+**Project:** [PROJECT_NAME] - [Brief description]
+
+**Mission:** [High-level goal, e.g., "Transform this into a polished demo showcase"]
+
+## Agent Execution Model
+
+- **Stateless:** You have no memory of previous iterations
+- **Context sources:** prd.json, progress.txt, CLAUDE.md, git log
+- **Output:** Code changes, progress updates, pattern documentation
+- **Success criteria:** All user stories in prd.json have `passes: true`
 
 ## Project Context
 
@@ -79,14 +90,34 @@ If you discover a **reusable pattern**, add it to the `## Codebase Patterns` sec
 - **Views:** Use Tailwind CSS + Bootstrap 5 for styling.
 - **Commits:** `feat: US-XXX - Title` format.
 
+## Cross-Agent Interoperability
+
+This project uses Milhouse for autonomous execution. If you're a different agent (Claude, Copilot, OpenCode, AMP):
+
+1. **Read these files first:**
+   - `prd.json` - Your task list (machine-readable)
+   - `progress.txt` - What previous agents learned
+   - This file (CLAUDE.md) - Project conventions
+
+2. **After completing work:**
+   - Update `prd.json` to mark stories as complete
+   - Append learnings to `progress.txt`
+   - Commit with format: `feat: US-XXX - Title`
+
+3. **Tool availability varies:**
+   - Browser MCP: Available in Claude CLI, partial in others
+   - GitHub integration: Best in Copilot
+   - File operations: Universal across all agents
+
 ## Browser Testing with Playwright MCP
 
 Use the Playwright MCP tools to verify pages load correctly. 
 
-**Note:** Playwright MCP is available in:
-- Claude CLI (via `playwright@claude-plugins-official` plugin)
-- VS Code Copilot (via built-in Playwright MCP)
-- gh copilot CLI may need separate MCP configuration
+**Tool Availability:**
+- ✓ Claude CLI (via `playwright@claude-plugins-official` or `@microsoft/playwright-mcp`)
+- ✓ AMP (via MCP server configuration)
+- ⚠ Copilot (limited MCP support)
+- ? OpenCode (MCP support TBD)
 
 If Playwright tools are not available, skip browser verification and rely on integration tests.
 

@@ -17,8 +17,8 @@ show_help() {
 Milhouse - Autonomous AI Agent System
 
 Usage:
-  milhouse run [turns]              Run milhouse agent (default: 25 turns)
-  milhouse run --tool <tool> [turns] Run with specific tool (claude|copilot|amp)
+  milhouse run [turns]                     Run milhouse agent (default: 25 turns)
+  milhouse run --tool <tool> [turns]       Run with specific tool (claude|copilot|opencode|amp)
 
   milhouse autorun start            Start autorunner daemon
   milhouse autorun stop             Stop autorunner daemon
@@ -36,12 +36,15 @@ Usage:
   milhouse ruby status              Check Ruby/Rails installation status
   milhouse ruby help                Show Ruby/Rails help
 
+  milhouse update                   Update milhouse from repository
   milhouse version                  Show version
   milhouse help                     Show this help
 
 Examples:
   milhouse run 15                   Run for 15 turns
   milhouse run --tool copilot       Run with GitHub Copilot
+  milhouse run --tool opencode      Run with OpenCode
+  milhouse run --tool amp           Run with AMP
   milhouse autorun start            Start background automation
   milhouse sync                     Update all instances
   milhouse qmd setup                Configure qmd for this project
@@ -96,6 +99,17 @@ main() {
                 help) ruby_help ;;
                 *) ruby_help ;;
             esac
+            ;;
+        update)
+            # Run update script from the installed location
+            UPDATE_SCRIPT="$SCRIPT_DIR/../../../milhouse/update.sh"
+            if [[ -f "$UPDATE_SCRIPT" ]]; then
+                bash "$UPDATE_SCRIPT"
+            else
+                echo "Error: update.sh not found. Please run from git repository:"
+                echo "  cd ~/path/to/milhouse && bash update.sh"
+                exit 1
+            fi
             ;;
         version)
             echo "Milhouse version $VERSION"

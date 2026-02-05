@@ -3,12 +3,29 @@
 # Handles PRD processing, archiving, progress tracking, and agent iteration loop
 
 run_agent() {
-    local turns="${1:-25}"
-    local tool="${2:-claude}"
+    # Parse arguments - support both positional and --tool flag
+    local turns="25"
+    local tool="claude"
+    
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --tool)
+                tool="$2"
+                shift 2
+                ;;
+            [0-9]*)
+                turns="$1"
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
 
     # Validate tool choice
-    if [[ "$tool" != "amp" && "$tool" != "claude" ]]; then
-        echo "Error: Invalid tool '$tool'. Must be 'amp' or 'claude'."
+    if [[ "$tool" != "claude" && "$tool" != "copilot" && "$tool" != "opencode" && "$tool" != "amp" ]]; then
+        echo "Error: Invalid tool '$tool'. Must be 'claude', 'copilot', 'opencode', or 'amp'."
         return 1
     fi
 
@@ -89,11 +106,22 @@ run_agent() {
         echo "  Milhouse Iteration $i of $turns ($tool)"
         echo "==============================================================="
 
-        if [[ "$tool" == "amp" ]]; then
-            OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
-        else
-            OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
-        fi
+        case "$tool" in
+            claude)
+                OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+                ;;
+            copilot)
+                PROMPT=$(cat "$SCRIPT_DIR/CLAUDE.md")
+                OUTPUT=$(gh copilot --allow-all -p "$PROMPT" 2>&1 | tee /dev/stderr) || true
+                ;;
+            opencode)
+                PROMPT=$(cat "$SCRIPT_DIR/CLAUDE.md")
+                OUTPUT=$(opencode run "$PROMPT" 2>&1 | tee /dev/stderr) || true
+                ;;
+            amp)
+                OUTPUT=$(cat "$SCRIPT_DIR/prompt.md" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
+                ;;
+        esac
 
         # Check for completion signal
         if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then

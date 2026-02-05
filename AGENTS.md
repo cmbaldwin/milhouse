@@ -134,36 +134,50 @@ Co-Authored-By: Ralph (Autonomous Agent) <ralph@example.com>
 
 ## Multi-Backend Support
 
-Ralph supports three AI backends:
+Milhouse supports four AI backends:
 
-### 1. Claude CLI (`ralph.sh --tool claude`)
+### 1. Claude CLI (Default)
 
 ```bash
-./ralph.sh --tool claude 25
+milhouse run 25
+milhouse run --tool claude 25
 
 # Features:
 - Playwright MCP support (browser automation)
 - Full tool access
 - Preferred for browser testing
+- Uses: claude --dangerously-skip-permissions --print < CLAUDE.md
 ```
 
-### 2. GitHub Copilot CLI (`ralph-copilot.sh`)
+### 2. GitHub Copilot CLI
 
 ```bash
-./ralph-copilot.sh 25
+milhouse run --tool copilot 25
 
 # Features:
 - Native GitHub integration
-- No Playwright MCP (use bash commands instead)
 - Uses --allow-all for permissions
+- Command: gh copilot --allow-all -p "prompt"
 ```
 
-### 3. AMP (`ralph.sh --tool amp`)
+### 3. OpenCode
 
 ```bash
-./ralph.sh --tool amp 15
+milhouse run --tool opencode 25
 
-# Uses prompt.md format instead of CLAUDE.md
+# Features:
+- Open source AI coding assistant
+- Command: opencode run "prompt"
+```
+
+### 4. AMP
+
+```bash
+milhouse run --tool amp 15
+
+# Features:
+- Uses prompt.md format instead of CLAUDE.md
+- Command: amp --dangerously-allow-all
 ```
 
 ## Auto-Runner System
