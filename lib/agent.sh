@@ -56,6 +56,30 @@ run_agent() {
         echo "---" >> "$PROGRESS_FILE"
     fi
 
+    # QMD Integration - Search documentation before starting
+    local project_dir="$(dirname "$SCRIPT_DIR")"
+    local project_name="$(basename "$project_dir")"
+
+    # Check if qmd collection exists
+    if command -v qmd &> /dev/null && qmd collection list 2>/dev/null | grep -q "^$project_name "; then
+        echo "Using qmd collection: $project_name"
+
+        # Read current user story from prd.json
+        if [ -f "$PRD_FILE" ]; then
+            local current_story=$(jq -r '.userStories[] | select(.passes == false) | .title' "$PRD_FILE" 2>/dev/null | head -1)
+
+            if [[ -n "$current_story" ]]; then
+                echo "Searching documentation for: $current_story"
+                qmd_search_for_story "$current_story" "$project_name"
+                echo ""
+            fi
+        fi
+    else
+        echo "No qmd collection found for $project_name"
+        echo "Run 'milhouse qmd setup' to enable documentation search"
+        echo ""
+    fi
+
     echo "Starting Milhouse - Tool: $tool - Max iterations: $turns"
 
     # Main agent execution loop
