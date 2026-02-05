@@ -3,7 +3,7 @@
 # Handles PRD processing, archiving, progress tracking, and agent iteration loop
 
 run_agent() {
-    local turns="$1"
+    local turns="${1:-25}"
     local tool="${2:-claude}"
 
     # Validate tool choice
@@ -12,8 +12,8 @@ run_agent() {
         return 1
     fi
 
-    # Set up file paths
-    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    # Set up file paths - use current working directory (user should cd to .milhouse/)
+    local SCRIPT_DIR="$PWD"
     local PRD_FILE="$SCRIPT_DIR/prd.json"
     local PROGRESS_FILE="$SCRIPT_DIR/progress.txt"
     local ARCHIVE_DIR="$SCRIPT_DIR/archive"
