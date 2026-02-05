@@ -12,32 +12,52 @@ Milhouse works by:
 4. Committing changes and updating progress
 5. Continuing until all stories are complete
 
-## Quick Start
+## Installation
 
-### For a New Project
+### Quick Install
 
 ```bash
-# 1. Copy the Milhouse scripts to your project
-mkdir -p your-project/.milhouse
-cd your-project/.milhouse
+git clone https://github.com/cmbaldwin/milhouse.git
+cd milhouse
+./install.sh
+```
 
-# 2. Copy core files from this repo
-cp /path/to/milhouse/milhouse.sh .
-cp /path/to/milhouse/milhouse-copilot.sh .
-cp /path/to/milhouse/CLAUDE.md.example CLAUDE.md
-cp /path/to/milhouse/prd.json.example prd.json
+### Verify Installation
 
-# 3. Make scripts executable
-chmod +x milhouse.sh milhouse-copilot.sh
+```bash
+milhouse version
+milhouse help
+```
 
-# 4. Edit CLAUDE.md and prd.json for your project
+### Setup a Project
 
-# 5. Initialize progress file
-echo "# Milhouse Progress Log" > progress.txt
-echo "Started: $(date)" >> progress.txt
+```bash
+cd your-project
+milhouse install
+```
 
-# 6. Run Milhouse
-./milhouse.sh --tool claude 15
+This creates:
+
+- `.milhouse/` directory
+- `CLAUDE.md` template
+- `prd.json` template
+- qmd collection for your project
+
+### Enable Auto-Runner
+
+```bash
+milhouse autorun start
+```
+
+The auto-runner will check for incomplete PRDs every hour during configured hours (default: 9 PM - 7 AM).
+
+## Quick Start
+
+### Running Milhouse
+
+```bash
+cd your-project
+milhouse run
 ```
 
 ## Core Files
