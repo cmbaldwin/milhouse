@@ -1,0 +1,46 @@
+# Milhouse Progress Log
+Started: 2026-02-06
+Purpose: Verify all Milhouse CLI tools work correctly
+---
+
+## Codebase Patterns
+- This is the Milhouse project itself - we're testing the CLI tools
+- Run each tool verification story one at a time
+- Each tool should: read files, update prd.json, append to progress.txt, commit changes
+- Document any errors or issues encountered
+
+---
+
+## Testing Instructions
+
+### US-001: Claude CLI
+```bash
+cd /Users/cody/Dev/milhouse
+milhouse run --tool claude 1
+```
+
+### US-002: Copilot CLI
+```bash
+cd /Users/cody/Dev/milhouse
+milhouse run --tool copilot 1
+```
+
+### US-003: OpenCode CLI
+```bash
+cd /Users/cody/Dev/milhouse
+milhouse run --tool opencode 1
+```
+
+### US-004: AMP CLI
+```bash
+cd /Users/cody/Dev/milhouse
+milhouse run --tool amp 1
+```
+
+---
+
+## 2026-02-06 15:56:33 - US-002
+- Tool: GitHub Copilot CLI
+- Result: SUCCESS
+- Notes: Successfully ran as Copilot CLI agent. Read prd.json, progress.txt, and CLAUDE.md. Updated prd.json to mark US-002 as complete. All acceptance criteria met.
+---
