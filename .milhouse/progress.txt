@@ -39,6 +39,16 @@ milhouse run --tool amp 1
 
 ---
 
+## 2026-02-06 17:15:00 - US-001
+- Tool: Claude CLI (claude-opus-4-6)
+- Result: SUCCESS
+- Notes: Successfully ran as Claude CLI agent. Read prd.json, progress.txt, and CLAUDE.md. Identified US-001 as the only remaining incomplete story. Updated prd.json to mark US-001 as complete. All acceptance criteria met. All 6 user stories now pass.
+- Learnings:
+  - Claude CLI backend works correctly with the Milhouse agent workflow
+  - stdin prompt delivery via temp file works reliably
+  - Agent correctly identifies and selects the single remaining incomplete story
+---
+
 ## 2026-02-06 16:00:00 - US-003
 - Tool: OpenCode CLI
 - Result: SUCCESS

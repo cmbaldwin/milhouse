@@ -15,8 +15,8 @@
         "Agent commits changes with proper format: 'feat: US-001 - Claude CLI Tool Verification'"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": "⏳ RETESTING: Claude rate limit reset at 5pm. Run with: milhouse run --tool claude 1"
+      "passes": true,
+      "notes": "✅ PASSED: Claude CLI backend successfully read prd.json, progress.txt, selected story, updated PRD, and committed."
     },
     {
       "id": "US-002",
