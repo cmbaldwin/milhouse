@@ -1,0 +1,9 @@
+# Milhouse Progress Log
+Started: Thu Feb  5 10:31:21 JST 2026
+---
+
+## 2026-02-06 - US-004
+- Tool: AMP CLI backend (`milhouse run --tool amp`)
+- Result: SUCCESS
+- Notes: AMP agent successfully started, read prd.json and progress.txt, identified US-004 as highest priority incomplete story, updated PRD to passes: true, appended progress, and committed. All acceptance criteria met.
+---

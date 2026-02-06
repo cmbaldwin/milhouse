@@ -16,7 +16,7 @@
       ],
       "priority": 6,
       "passes": false,
-      "notes": "⚠️ SKIPPED: Rate limited until 5pm Tokyo. Will test last. Run with: milhouse run --tool claude 1"
+      "notes": "⏳ RETESTING: Claude rate limit reset at 5pm. Run with: milhouse run --tool claude 1"
     },
     {
       "id": "US-002",
@@ -61,7 +61,7 @@
       ],
       "priority": 3,
       "passes": true,
-      "notes": "❌ VERIFIED FAILED: Requires paid credits (402 error). Add credits at https://ampcode.com/pay"
+      "notes": "✅ PASSED: AMP backend successfully read prd.json, progress.txt, selected story, updated PRD, and committed."
     },
     {
       "id": "US-005",
