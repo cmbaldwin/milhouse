@@ -118,12 +118,15 @@ run_agent() {
         # Standardized tool invocation with consistent verbosity handling
         case "$tool" in
             claude)
+                # Claude requires --print flag to avoid interactive TUI mode
                 if [ "$verbose" = "true" ]; then
-                    # Verbose mode: streaming output (no --print flag)
-                    OUTPUT=$(claude --dangerously-skip-permissions < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+                    # Verbose mode: show output as it happens
+                    echo "[Claude processing...]"
+                    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1)
+                    echo "$OUTPUT"
                 else
-                    # Quiet mode: minimal output (with --print flag)
-                    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+                    # Quiet mode: capture output silently
+                    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1) || true
                 fi
                 ;;
             copilot)
@@ -133,8 +136,13 @@ run_agent() {
                 ;;
             opencode)
                 PROMPT=$(cat "$SCRIPT_DIR/CLAUDE.md")
-                # OpenCode streams by default, capture output uniformly
-                OUTPUT=$(opencode run "$PROMPT" 2>&1 | tee /dev/stderr) || true
+                if [ "$verbose" = "true" ]; then
+                    # Verbose mode: streaming output with tee
+                    OUTPUT=$(opencode run -m opencode/kimi-k2.5-free "$PROMPT" 2>&1 | tee /dev/stderr) || true
+                else
+                    # Quiet mode: capture output only, no tee
+                    OUTPUT=$(opencode run -m opencode/kimi-k2.5-free "$PROMPT" 2>&1) || true
+                fi
                 ;;
             amp)
                 # AMP streams by default, capture output uniformly

@@ -145,7 +145,7 @@ milhouse run --tool amp 15
 | -------- | ----------------------------------------------- | --------- | --------- | ----------- | ------------------ | ----------- |
 | Claude   | `claude --dangerously-skip-permissions --print` | ✓         | ✗         | ✓           | ✗                  | Full        |
 | Copilot  | `gh copilot --allow-all -p`                     | ✓         | ✗         | ✗           | ✓                  | Partial     |
-| OpenCode | `opencode run`                                  | ✓         | ✗         | TBD         | ✗                  | TBD         |
+| OpenCode | `opencode run`                                  | ✓         | ✗         | ✗           | ✗                  | Full        |
 | AMP      | `amp --dangerously-allow-all`                   | ✗         | ✓         | ✗           | ✗                  | Full        |
 
 **Recommendation:** Use Claude CLI for browser automation tasks, Copilot for GitHub-integrated workflows.

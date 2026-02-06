@@ -185,11 +185,14 @@ milhouse run --tool copilot --verbose 25   # Default behavior
 
 ```bash
 milhouse run --tool opencode 25
-milhouse run --tool opencode --verbose 25  # Default behavior
+milhouse run --tool opencode --verbose 25  # Streaming output (default)
+milhouse run --tool opencode --quiet 25   # Minimal output
 
 # Features:
 - Open source AI coding assistant
 - Streams output by default
+- Supports quiet mode (no streaming)
+- Full MCP server support
 - Command: opencode run "prompt"
 ```
 
@@ -210,7 +213,7 @@ milhouse run --tool amp --verbose 15       # Default behavior
 All backends now provide consistent verbosity behavior:
 
 1. **Default Mode**: Verbose/streaming output (matches Copilot's natural behavior)
-2. **Quiet Mode**: Available via `--quiet` flag (primarily for Claude's `--print` mode)
+2. **Quiet Mode**: Available via `--quiet` flag for all backends
 3. **Output Capture**: All backends use `2>&1 | tee /dev/stderr` for consistent logging
 4. **Completion Detection**: All backends output `<promise>COMPLETE</promise>` signal
 
@@ -247,6 +250,10 @@ By default, Ralph only runs from 9 PM to 7 AM (overnight) to avoid interfering w
 # OFF hours (Ralph will NOT run during these times)
 OFF_START_HOUR=7   # 7 AM
 OFF_END_HOUR=21    # 9 PM
+
+# AI Backend Configuration
+# Available options: claude, copilot, opencode, amp
+BACKEND=claude
 ```
 
 Times are in 24-hour format in your local timezone.
@@ -341,7 +348,7 @@ All AI backends now provide consistent verbosity control:
 
 **Solution:** Standardized interface with explicit flags:
 - Default is **verbose** mode (streaming output) for all backends
-- `--quiet` flag enables minimal output (primarily for Claude's `--print` mode)
+- `--quiet` flag enables minimal output (no tee for non-Claude backends)
 - `--verbose` flag explicitly enables streaming (matches Copilot's natural behavior)
 
 ```bash
@@ -349,14 +356,49 @@ All AI backends now provide consistent verbosity control:
 milhouse run --verbose 25         # Streaming output (default)
 milhouse run --quiet 25           # Minimal output
 milhouse run --tool claude --verbose 25
-milhouse run --tool copilot --quiet 25
+milhouse run --tool opencode --quiet 25
 ```
 
 **Implementation:**
-- Claude: Removes `--print` flag by default, adds it only with `--quiet`
-- Other backends: Already stream by default, `--quiet` documented but not yet implemented
+- Claude: Uses `--print` flag for quiet mode, streaming without it
+- OpenCode/Copilot/AMP: Remove `tee` in quiet mode, use `tee` in verbose
 - All use `2>&1 | tee /dev/stderr` for consistent output capture
 - Agent shows verbosity level in startup message: `Output: verbose` or `Output: quiet`
+
+### Pattern: MCP Server Support with OpenCode
+
+OpenCode fully supports MCP (Model Context Protocol) servers in both interactive and non-interactive modes:
+
+**Configuration via opencode.json:**
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "rails-mcp-server": {
+      "type": "local",
+      "command": ["npx", "-y", "@maquina/rails-mcp-server"],
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+```
+
+**Key Features:**
+- Local MCP servers via `command` array
+- Remote MCP servers via `url` with optional headers
+- OAuth authentication support for remote servers
+- Per-agent tool enablement/disablement
+- Works in `opencode run` (non-interactive) mode
+
+**Important Notes:**
+- MCP servers add to context/token usage
+- Be selective about which MCP servers to enable
+- Certain servers (e.g., GitHub MCP) can quickly exceed context limits
+- Configure in `~/.config/opencode/opencode.json` (global) or project root (local)
 
 ## Troubleshooting
 

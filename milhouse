@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Determine script directory - use installed location if libraries not found locally
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ! -d "$SCRIPT_DIR/lib" ]]; then
+    # Libraries not found locally, use installed location
+    SCRIPT_DIR="$HOME/.local/lib/milhouse"
+fi
 
 # Load libraries
 source "$SCRIPT_DIR/lib/agent.sh"
@@ -10,7 +15,7 @@ source "$SCRIPT_DIR/lib/sync.sh"
 source "$SCRIPT_DIR/lib/qmd.sh"
 source "$SCRIPT_DIR/lib/ruby.sh"
 
-VERSION="2.0.0"
+VERSION="2.0.1"
 
 show_help() {
     cat << EOF
@@ -113,13 +118,13 @@ main() {
             esac
             ;;
         update)
-            # Run update script from the installed location
-            UPDATE_SCRIPT="$SCRIPT_DIR/../../../milhouse/update.sh"
+            # Run update script from the git repository
+            UPDATE_SCRIPT="$HOME/Dev/milhouse/update.sh"
             if [[ -f "$UPDATE_SCRIPT" ]]; then
                 bash "$UPDATE_SCRIPT"
             else
-                echo "Error: update.sh not found. Please run from git repository:"
-                echo "  cd ~/path/to/milhouse && bash update.sh"
+                echo "Error: update.sh not found at $UPDATE_SCRIPT"
+                echo "Please ensure the milhouse repository is at ~/Dev/milhouse/"
                 exit 1
             fi
             ;;

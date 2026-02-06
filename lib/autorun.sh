@@ -47,12 +47,20 @@ load_config() {
 # Default: OFF from 7AM to 9PM (only runs at night)
 OFF_START_HOUR=7
 OFF_END_HOUR=21
+
+# AI Backend Configuration
+# Available options: claude, copilot, opencode, amp
+# Default: claude
+BACKEND=claude
 EOF
     log "Created default configuration at $CONFIG_FILE"
   fi
 
   # Source configuration
   source "$CONFIG_FILE"
+
+  # Set default backend if not specified
+  BACKEND="${BACKEND:-claude}"
 }
 
 # Main daemon logic - scans for PRDs and runs Milhouse
@@ -103,8 +111,9 @@ autorun_daemon() {
       fi
 
       log "=========================================="
-      log "RUNNING RALPH IN: $MILHOUSE_DIR"
-      log "Command: $MILHOUSE_SCRIPT --tool claude 15"
+      log "RUNNING MILHOUSE IN: $MILHOUSE_DIR"
+      log "Backend: $BACKEND"
+      log "Command: $MILHOUSE_SCRIPT --tool $BACKEND 15"
       log "=========================================="
 
       # Check if milhouse is already running
@@ -113,10 +122,10 @@ autorun_daemon() {
         continue
       fi
 
-      # Run milhouse.sh with 15 iterations
+      # Run milhouse.sh with 15 iterations using configured backend
       cd "$MILHOUSE_DIR"
 
-      if "$MILHOUSE_SCRIPT" --tool claude 15 >> "$LOG_FILE" 2>&1; then
+      if "$MILHOUSE_SCRIPT" --tool "$BACKEND" 15 >> "$LOG_FILE" 2>&1; then
         log "Milhouse completed successfully"
       else
         local EXIT_CODE=$?
@@ -204,6 +213,11 @@ autorun_config() {
 # Default: OFF from 7AM to 9PM (only runs at night)
 OFF_START_HOUR=7
 OFF_END_HOUR=21
+
+# AI Backend Configuration
+# Available options: claude, copilot, opencode, amp
+# Default: claude
+BACKEND=claude
 EOF
     echo "✓ Created: $CONFIG_FILE"
   fi
@@ -217,6 +231,7 @@ EOF
     echo ""
     cat "$CONFIG_FILE"
     echo ""
+    echo "AI Backends: claude | copilot | opencode | amp"
     echo "To edit: milhouse autorun config edit"
   fi
 }
@@ -235,6 +250,8 @@ autorun_schedule() {
   echo "  OFF hours: ${OFF_START_HOUR}:00 - ${OFF_END_HOUR}:00"
   echo "  Current time: $(date '+%H:%M %Z')"
   echo "  Current hour: $CURRENT_HOUR"
+  echo ""
+  echo "AI Backend: ${BACKEND:-claude}"
   echo ""
 
   # Check if currently in off hours
@@ -302,11 +319,12 @@ autorun_daemon() {
     fi
 
     log "RUNNING MILHOUSE IN: $milhouse_dir"
+    log "Backend: $BACKEND"
     cd "$milhouse_dir" || exit 1
 
-    # Run milhouse
+    # Run milhouse with configured backend
     if command -v milhouse &> /dev/null; then
-        milhouse run 25 2>&1 | tee -a "$LOG_FILE"
+        milhouse run --tool "$BACKEND" 25 2>&1 | tee -a "$LOG_FILE"
     else
         log "ERROR: milhouse command not found"
         exit 1
@@ -318,7 +336,11 @@ autorun_daemon() {
 
 # Test mode - dry run showing what would be executed
 autorun_test() {
+    # Load config to get backend setting
+    load_config
+
     echo "TEST MODE: Scanning for incomplete PRDs..."
+    echo "Backend: $BACKEND"
     echo ""
 
     find ~/dev -name "prd.json" -path "*/.milhouse/*" -not -path "*/archive/*" -not -path "*/.git/*" 2>/dev/null | while read prd; do
@@ -327,6 +349,7 @@ autorun_test() {
             echo "Would run: $prd"
             echo "  Incomplete stories: $incomplete"
             echo "  Directory: $(dirname "$prd")"
+            echo "  Backend: $BACKEND"
             echo ""
         fi
     done
