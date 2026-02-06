@@ -31,7 +31,17 @@
 ```
 402 {"type":"error","error":{"type":"unknown_error","message":"Execute mode (amp -x) and the Amp SDK require paid credits and cannot use Amp's ad-supported free-tier, because ads cannot be displayed in non-interactive contexts. Add credits at https://ampcode.com/pay."}}
 ```
-**Fix:** Add paid credits at https://ampcode.com/pay
+
+**Root Cause:** AMP's free tier ($10/day, ad-supported) is **interactive-only by design**. The execute mode (`-x`, `--dangerously-allow-all`) used by Milhouse requires paid credits because:
+- Ads cannot display in non-interactive/scripted contexts
+- Execute mode runs headless without a TTY
+
+**User has $10 free credits available** (`amp usage`) but they can only be used interactively.
+
+**Options:**
+1. **Add paid credits** at https://ampcode.com/pay for automated use
+2. **Run AMP manually** in interactive mode (not through Milhouse)
+3. **Use alternative tools** (Copilot, OpenCode, Claude) for automation
 
 ### US-005: Install Command ✅
 Created files:
