@@ -58,32 +58,10 @@ find_available_projects() {
     fi
 }
 
-build_prompt() {
-    local project_dir="$1"
-    local milhouse_dir="$project_dir/.milhouse"
-    local milhouse_repo_dir="${MILHOUSE_REPO_DIR:-$HOME/.local/lib/milhouse}"
-    local claude_md="$project_dir/CLAUDE.md"
-    local combined=""
-
-    # Prefer local .milhouse/prompt.md, fall back to installed generic prompt.md
-    local prompt_file=""
-    if [[ -f "$milhouse_dir/prompt.md" ]]; then
-        prompt_file="$milhouse_dir/prompt.md"
-    elif [[ -f "$milhouse_repo_dir/prompt.md" ]]; then
-        prompt_file="$milhouse_repo_dir/prompt.md"
-    else
-        echo "Error: No prompt.md found in $milhouse_dir/ or $milhouse_repo_dir/" >&2
-        return 1
-    fi
-
-    combined="$(cat "$prompt_file")"
-
-    # Append project-specific context
-    if [[ -f "$claude_md" ]]; then
-        combined="$combined"$'\n\n---\n\n'"$(cat "$claude_md")"
-    fi
-
-    echo "$combined"
+get_simple_prompt() {
+    # Instead of constructing a massive prompt, just tell Claude to read the files
+    # Claude has --dangerously-skip-permissions so it can read files directly
+    echo "You are Milhouse, an autonomous AI agent. Read and follow the agent instructions in .milhouse/prompt.md. Your project context is in CLAUDE.md at the project root. Follow the workflow: read prd.json, pick one incomplete story, implement it, run quality checks, commit, update progress.txt, and signal completion with <promise>COMPLETE</promise> when all stories pass."
 }
 
 archive_completed_run() {
@@ -280,16 +258,9 @@ run_agent() {
         echo ""
     fi
 
-    # Build unified prompt and write to temp file (avoids shell argument issues with large prompts)
-    local PROMPT_FILE=$(mktemp)
-    build_prompt "$PROJECT_DIR" > "$PROMPT_FILE"
-    if [[ $? -ne 0 ]] || [[ ! -s "$PROMPT_FILE" ]]; then
-        echo "Failed to build prompt. Ensure prompt.md exists."
-        rm -f "$PROMPT_FILE"
-        return 1
-    fi
-    local prompt_size=$(wc -c < "$PROMPT_FILE" | tr -d ' ')
-    echo "Prompt built: ${prompt_size} bytes"
+    # Use simple prompt - Claude reads files itself
+    local SIMPLE_PROMPT
+    SIMPLE_PROMPT=$(get_simple_prompt)
 
     echo "Starting Milhouse - Tool: $tool - Max iterations: $turns - Timeout: ${timeout_mins}m/iter"
     echo "Press Ctrl+C to stop at any time."
@@ -313,7 +284,6 @@ run_agent() {
                 echo ""
                 echo "All stories in prd.json are complete!"
                 archive_completed_run "$MILHOUSE_DIR"
-                rm -f "$PROMPT_FILE"
                 trap - INT TERM
                 return 0
             fi
@@ -327,26 +297,27 @@ run_agent() {
         case "$tool" in
             claude)
                 if [ "$verbose" = "true" ]; then
-                    (timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print < "$PROMPT_FILE" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                    (timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                     exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                     rm -f "$tmpfile.rc"
                 else
-                    timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print < "$PROMPT_FILE" > "$tmpfile" 2>&1
+                    timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" > "$tmpfile" 2>&1
                     exit_code=$?
                 fi
                 ;;
             copilot)
-                (timeout "${timeout_mins}m" bash -c 'gh copilot --allow-all -p "$(cat "$1")" 2>&1' _ "$PROMPT_FILE"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                (timeout "${timeout_mins}m" bash -c 'gh copilot --allow-all -p "$1" 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                 exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                 rm -f "$tmpfile.rc"
                 ;;
             opencode)
-                (timeout "${timeout_mins}m" bash -c 'opencode run -m opencode/kimi-k2.5-free "$(cat "$1")" 2>&1' _ "$PROMPT_FILE"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                (timeout "${timeout_mins}m" bash -c 'opencode run -m opencode/kimi-k2.5-free "$1" 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                 exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                 rm -f "$tmpfile.rc"
                 ;;
             amp)
-                (timeout "${timeout_mins}m" amp --dangerously-allow-all < "$PROMPT_FILE" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                # AMP reads from stdin, so we pass the simple prompt via stdin
+                (timeout "${timeout_mins}m" bash -c 'echo "$1" | amp --dangerously-allow-all' _ "$SIMPLE_PROMPT" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                 exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                 rm -f "$tmpfile.rc"
                 ;;
@@ -374,7 +345,6 @@ run_agent() {
             echo ""
             echo "ERROR: $MAX_CONSECUTIVE_FAILURES consecutive failures. Stopping."
             echo "Check $PROGRESS_FILE for status."
-            rm -f "$PROMPT_FILE"
             trap - INT TERM
             return 1
         fi
@@ -385,7 +355,6 @@ run_agent() {
             echo "Milhouse completed all tasks!"
             echo "Completed at iteration $i of $turns"
             archive_completed_run "$MILHOUSE_DIR"
-            rm -f "$PROMPT_FILE"
             trap - INT TERM
             return 0
         fi
@@ -405,7 +374,6 @@ run_agent() {
     echo ""
     echo "Milhouse reached max iterations ($turns) without completing all tasks."
     echo "Check $PROGRESS_FILE for status."
-    rm -f "$PROMPT_FILE"
     trap - INT TERM
     return 1
 }
