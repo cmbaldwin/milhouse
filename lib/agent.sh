@@ -297,11 +297,11 @@ run_agent() {
         case "$tool" in
             claude)
                 if [ "$verbose" = "true" ]; then
-                    (timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                    (timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" < /dev/null 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                     exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                     rm -f "$tmpfile.rc"
                 else
-                    timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" > "$tmpfile" 2>&1
+                    timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" < /dev/null > "$tmpfile" 2>&1
                     exit_code=$?
                 fi
                 ;;
