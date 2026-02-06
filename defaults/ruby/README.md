@@ -86,6 +86,45 @@ Analyzes Ruby/Rails code quality using the RubyCritic gem. Provides metrics on c
 
 **Requires:** `gem install rubycritic`
 
+### 4. Claude Agent SDK for Ruby
+
+**Repo:** https://github.com/ya-luotao/claude-agent-sdk-ruby
+
+A Ruby SDK for building Claude-powered agents with structured outputs, tool definitions, and streaming support.
+
+**Features:**
+- Structured output schemas with validation
+- Tool/function definitions for agent capabilities
+- Streaming response support
+- Conversation context management
+- Error handling and retry logic
+
+**Usage:**
+```ruby
+require 'claude_agent_sdk'
+
+client = ClaudeAgentSdk::Client.new(api_key: ENV['ANTHROPIC_API_KEY'])
+
+# Simple completion
+response = client.complete(
+  model: "claude-3-5-sonnet-20241022",
+  messages: [{ role: "user", content: "Hello!" }]
+)
+
+# With structured output
+response = client.complete(
+  model: "claude-3-5-sonnet-20241022",
+  messages: [{ role: "user", content: "Analyze this code" }],
+  schema: {
+    issues: [:string],
+    suggestions: [:string],
+    severity: "string"
+  }
+)
+```
+
+**Installation:** `gem install claude-agent-sdk`
+
 ## Included MCP Server
 
 ### Rails MCP Server
@@ -149,6 +188,16 @@ The rails-mcp-server is added to `~/.claude/settings.json`:
 }
 ```
 
+## Additional Ruby Gems
+
+### Claude Agent SDK
+
+**Repo:** https://github.com/ya-luotao/claude-agent-sdk-ruby
+
+**Installation:** `gem install claude-agent-sdk`
+
+Ruby SDK for building Claude-powered agents with structured outputs, tool definitions, and streaming support. Useful for building custom automation tools that leverage Claude's capabilities.
+
 ## Check Installation Status
 
 ```bash
@@ -181,4 +230,7 @@ rails-mcp-config
 git clone https://github.com/robzolkos/skill-rails-system-test-analyzer.git
 git clone https://github.com/maquina-app/rails-upgrade-skill.git
 git clone https://github.com/esparkman/claude-rubycritic-skill.git
+
+# Claude Agent SDK
+gem install claude-agent-sdk
 ```
