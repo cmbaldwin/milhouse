@@ -10,7 +10,7 @@
 | OpenCode CLI | ✅ PASS | Commit `911de58` |
 | AMP CLI | ❌ FAIL | Requires paid credits (402 error) |
 | Install Command | ✅ PASS | Creates all expected files |
-| Claude CLI | ⏳ DEFERRED | Rate limited until 5pm Tokyo |
+| Claude CLI | ✅ PASS | Fixed stdin hanging issue |
 
 ## Detailed Results
 
@@ -50,10 +50,9 @@ Created files:
 - `.milhouse/progress.txt`
 - `CLAUDE.md` (at project root)
 
-### US-001: Claude CLI ⏳
-**Status:** Rate limited  
-**Error:** `You've hit your limit · resets 5pm (Asia/Tokyo)`  
-**Action:** Retry after 5pm Tokyo time
+### US-001: Claude CLI ✅
+**Status:** PASSED
+**Fix:** Applied `< /dev/null` redirection to `agent.sh` to prevent `SIGTTIN` signal hanging background process. This matches behavior of legacy `ralph.sh`.
 
 ## Recommendations
 

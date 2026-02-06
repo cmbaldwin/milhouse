@@ -16,7 +16,7 @@
       ],
       "priority": 6,
       "passes": true,
-      "notes": "✅ PASSED: Fixed stdin hanging issue by redirecting input from /dev/null (matching ralph.sh behavior)."
+      "notes": "✅ PASSED: Claude CLI backend successfully read prd.json, progress.txt, selected story, updated PRD, and committed."
     },
     {
       "id": "US-002",
