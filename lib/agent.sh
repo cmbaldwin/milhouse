@@ -2,6 +2,20 @@
 # Agent execution logic for Milhouse
 # Handles PRD processing, archiving, progress tracking, and agent iteration loop
 
+# Track child PID for cleanup
+MILHOUSE_AGENT_PID=""
+
+_milhouse_cleanup() {
+    echo ""
+    echo "Milhouse interrupted. Cleaning up..."
+    if [[ -n "$MILHOUSE_AGENT_PID" ]] && kill -0 "$MILHOUSE_AGENT_PID" 2>/dev/null; then
+        kill "$MILHOUSE_AGENT_PID" 2>/dev/null
+        wait "$MILHOUSE_AGENT_PID" 2>/dev/null
+    fi
+    echo "Stopped."
+    exit 130
+}
+
 get_dev_folder() {
     local config_file="${MILHOUSE_CONFIG:-$HOME/.config/milhouse/config}"
     if [[ -f "$config_file" ]]; then
@@ -19,16 +33,12 @@ find_available_projects() {
     local -a projects=()
     if [[ -d "$dev_folder" ]]; then
         while IFS= read -r -d '' prd_file; do
-            # prd_file is like: /Users/cody/dev/project/.milhouse/prd.json
-            # Get the parent of .milhouse (the project name)
             local milhouse_dir=$(dirname "$prd_file")
             local project_dir=$(dirname "$milhouse_dir")
             local project_name=$(basename "$project_dir")
-            # Skip archive directories
             if [[ "$project_name" == "archive" ]]; then
                 continue
             fi
-            # Only add if not already in list
             local exists=false
             if [[ ${#projects[@]} -gt 0 ]]; then
                 for p in "${projects[@]}"; do
@@ -50,18 +60,23 @@ find_available_projects() {
 
 build_prompt() {
     local project_dir="$1"
+    local milhouse_dir="$project_dir/.milhouse"
     local milhouse_repo_dir="${MILHOUSE_REPO_DIR:-$HOME/.local/lib/milhouse}"
-    local prompt_file="$milhouse_repo_dir/prompt.md"
     local claude_md="$project_dir/CLAUDE.md"
     local combined=""
 
-    # Start with milhouse agent instructions (iteration workflow)
-    if [[ -f "$prompt_file" ]]; then
-        combined="$(cat "$prompt_file")"
+    # Prefer local .milhouse/prompt.md, fall back to installed generic prompt.md
+    local prompt_file=""
+    if [[ -f "$milhouse_dir/prompt.md" ]]; then
+        prompt_file="$milhouse_dir/prompt.md"
+    elif [[ -f "$milhouse_repo_dir/prompt.md" ]]; then
+        prompt_file="$milhouse_repo_dir/prompt.md"
     else
-        echo "Error: prompt.md not found at $prompt_file" >&2
+        echo "Error: No prompt.md found in $milhouse_dir/ or $milhouse_repo_dir/" >&2
         return 1
     fi
+
+    combined="$(cat "$prompt_file")"
 
     # Append project-specific context
     if [[ -f "$claude_md" ]]; then
@@ -99,11 +114,15 @@ archive_completed_run() {
 }
 
 run_agent() {
-    # Parse arguments - support both positional and --tool flag
+    # Set up Ctrl+C trap for clean shutdown
+    trap _milhouse_cleanup INT TERM
+
+    # Parse arguments
     local turns="25"
     local tool="claude"
-    local verbose="true"  # Default to verbose (streaming) output
-    
+    local verbose="true"
+    local timeout_mins="15"  # Per-iteration timeout in minutes
+
     while [[ $# -gt 0 ]]; do
         case $1 in
             --tool)
@@ -117,6 +136,10 @@ run_agent() {
             --verbose)
                 verbose="true"
                 shift
+                ;;
+            --timeout)
+                timeout_mins="$2"
+                shift 2
                 ;;
             [0-9]*)
                 turns="$1"
@@ -134,29 +157,25 @@ run_agent() {
         return 1
     fi
 
-    # Determine project directory - CLAUDE.md must be in project root
+    # Determine project directory
     local PROJECT_DIR=""
     local MILHOUSE_DIR=""
-    
-    # Check if we're in a .milhouse directory
+
     if [[ "$(basename "$PWD")" == ".milhouse" ]]; then
         MILHOUSE_DIR="$PWD"
         PROJECT_DIR="$(dirname "$PWD")"
-    # Check if there's a .milhouse subdirectory
     elif [[ -d "$PWD/.milhouse" ]]; then
         MILHOUSE_DIR="$PWD/.milhouse"
         PROJECT_DIR="$PWD"
-    # If CLAUDE.md exists in current dir, treat as project root
     elif [[ -f "$PWD/CLAUDE.md" ]]; then
         PROJECT_DIR="$PWD"
-        # Look for .milhouse subdirectory or use current dir
         if [[ -d "$PWD/.milhouse" ]]; then
             MILHOUSE_DIR="$PWD/.milhouse"
         else
             MILHOUSE_DIR="$PWD"
         fi
     fi
-    
+
     # Validate .milhouse directory exists
     if [[ -z "$MILHOUSE_DIR" ]] || [[ ! -d "$MILHOUSE_DIR" ]]; then
         local dev_folder=$(get_dev_folder)
@@ -168,7 +187,7 @@ run_agent() {
         echo ""
         echo "Searching for available projects in $dev_folder..."
         echo ""
-        
+
         local projects=($(find_available_projects))
         if [[ ${#projects[@]} -gt 0 ]]; then
             echo "Available projects:"
@@ -177,17 +196,9 @@ run_agent() {
             done
             echo ""
             echo "To run milhouse in a project:"
-            echo "  cd $dev_folder/<project>/.milhouse && milhouse run"
-            echo "  or"
             echo "  cd $dev_folder/<project> && milhouse run"
         else
             echo "No projects found in $dev_folder/"
-            echo ""
-            echo "To configure the dev folder, create/edit ~/.config/milhouse/config:"
-            echo "  dev_folder=/path/to/your/projects"
-            echo ""
-            echo "Or set the environment variable:"
-            echo "  export DEFAULT_DEV_FOLDER=/path/to/your/projects"
             echo ""
             echo "To set up a new project:"
             echo "  cd $dev_folder/<your-project>"
@@ -195,17 +206,14 @@ run_agent() {
         fi
         return 1
     fi
-    
+
     # Check if CLAUDE.md exists in project root
     if [[ ! -f "$PROJECT_DIR/CLAUDE.md" ]]; then
         echo "Warning: No CLAUDE.md found in project root ($PROJECT_DIR)"
-        echo ""
         echo "Milhouse requires a CLAUDE.md file in the project root directory."
-        echo "Please create $PROJECT_DIR/CLAUDE.md with your project instructions."
-        echo ""
         return 1
     fi
-    
+
     # Set up file paths
     local SCRIPT_DIR="$MILHOUSE_DIR"
     local PRD_FILE="$SCRIPT_DIR/prd.json"
@@ -254,11 +262,9 @@ run_agent() {
     local project_dir="$(dirname "$SCRIPT_DIR")"
     local project_name="$(basename "$project_dir")"
 
-    # Check if qmd collection exists
     if command -v qmd &> /dev/null && qmd collection list 2>/dev/null | grep -q "^$project_name "; then
         echo "Using qmd collection: $project_name"
 
-        # Read current user story from prd.json
         if [ -f "$PRD_FILE" ]; then
             local current_story=$(jq -r '.userStories[] | select(.passes == false) | .title' "$PRD_FILE" 2>/dev/null | head -1)
 
@@ -277,44 +283,86 @@ run_agent() {
     # Build unified prompt (agent workflow instructions + project context)
     PROMPT=$(build_prompt "$PROJECT_DIR")
     if [[ $? -ne 0 ]]; then
-        echo "Failed to build prompt. Ensure prompt.md exists in milhouse installation."
+        echo "Failed to build prompt. Ensure prompt.md exists."
         return 1
     fi
 
-    echo "Starting Milhouse - Tool: $tool - Max iterations: $turns - Output: $([ "$verbose" = "true" ] && echo "verbose" || echo "quiet")"
+    echo "Starting Milhouse - Tool: $tool - Max iterations: $turns - Timeout: ${timeout_mins}m/iter"
+    echo "Press Ctrl+C to stop at any time."
+    echo ""
+
+    local consecutive_failures=0
+    local MAX_CONSECUTIVE_FAILURES=3
 
     # Main agent execution loop
     for i in $(seq 1 $turns); do
         echo ""
         echo "==============================================================="
         echo "  Milhouse Iteration $i of $turns ($tool)"
+        echo "  Started: $(date '+%H:%M:%S')  Timeout: ${timeout_mins}m"
         echo "==============================================================="
 
-        # All tools receive the same combined prompt
+        # Check if all stories are already complete before running
+        if [ -f "$PRD_FILE" ]; then
+            local remaining=$(jq '[.userStories[] | select(.passes == false)] | length' "$PRD_FILE" 2>/dev/null)
+            if [[ "$remaining" == "0" ]]; then
+                echo ""
+                echo "All stories in prd.json are complete!"
+                archive_completed_run "$MILHOUSE_DIR"
+                trap - INT TERM
+                return 0
+            fi
+            echo "  Stories remaining: $remaining"
+        fi
+
+        # Create temp file for output capture (allows tee for streaming)
+        local tmpfile=$(mktemp)
+
+        local exit_code=0
         case "$tool" in
             claude)
                 if [ "$verbose" = "true" ]; then
-                    echo "[Claude processing...]"
-                    OUTPUT=$(claude -p "$PROMPT" --dangerously-skip-permissions --print 2>&1)
-                    echo "$OUTPUT"
+                    timeout "${timeout_mins}m" claude -p "$PROMPT" --dangerously-skip-permissions --print 2>&1 | tee "$tmpfile" || exit_code=$?
                 else
-                    OUTPUT=$(claude -p "$PROMPT" --dangerously-skip-permissions --print 2>&1) || true
+                    timeout "${timeout_mins}m" claude -p "$PROMPT" --dangerously-skip-permissions --print > "$tmpfile" 2>&1 || exit_code=$?
                 fi
                 ;;
             copilot)
-                OUTPUT=$(gh copilot --allow-all -p "$PROMPT" 2>&1 | tee /dev/stderr) || true
+                timeout "${timeout_mins}m" bash -c 'gh copilot --allow-all -p "$1" 2>&1' _ "$PROMPT" | tee "$tmpfile" || exit_code=$?
                 ;;
             opencode)
-                if [ "$verbose" = "true" ]; then
-                    OUTPUT=$(opencode run -m opencode/kimi-k2.5-free "$PROMPT" 2>&1 | tee /dev/stderr) || true
-                else
-                    OUTPUT=$(opencode run -m opencode/kimi-k2.5-free "$PROMPT" 2>&1) || true
-                fi
+                timeout "${timeout_mins}m" opencode run -m opencode/kimi-k2.5-free "$PROMPT" 2>&1 | tee "$tmpfile" || exit_code=$?
                 ;;
             amp)
-                OUTPUT=$(echo "$PROMPT" | amp --dangerously-allow-all 2>&1 | tee /dev/stderr) || true
+                echo "$PROMPT" | timeout "${timeout_mins}m" amp --dangerously-allow-all 2>&1 | tee "$tmpfile" || exit_code=$?
                 ;;
         esac
+
+        OUTPUT=$(cat "$tmpfile")
+        rm -f "$tmpfile"
+
+        # Handle timeout (exit code 124)
+        if [[ $exit_code -eq 124 ]]; then
+            echo ""
+            echo "WARNING: Iteration $i timed out after ${timeout_mins} minutes."
+            consecutive_failures=$((consecutive_failures + 1))
+        # Handle other errors
+        elif [[ $exit_code -ne 0 ]]; then
+            echo ""
+            echo "WARNING: $tool exited with code $exit_code on iteration $i."
+            consecutive_failures=$((consecutive_failures + 1))
+        else
+            consecutive_failures=0
+        fi
+
+        # Check for consecutive failures
+        if [[ $consecutive_failures -ge $MAX_CONSECUTIVE_FAILURES ]]; then
+            echo ""
+            echo "ERROR: $MAX_CONSECUTIVE_FAILURES consecutive failures. Stopping."
+            echo "Check $PROGRESS_FILE for status."
+            trap - INT TERM
+            return 1
+        fi
 
         # Check for completion signal
         if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
@@ -322,15 +370,25 @@ run_agent() {
             echo "Milhouse completed all tasks!"
             echo "Completed at iteration $i of $turns"
             archive_completed_run "$MILHOUSE_DIR"
+            trap - INT TERM
             return 0
         fi
 
-        echo "Iteration $i complete. Continuing..."
+        # Check for empty output (agent produced nothing)
+        if [[ -z "$OUTPUT" ]]; then
+            echo ""
+            echo "WARNING: $tool produced no output on iteration $i."
+            consecutive_failures=$((consecutive_failures + 1))
+        fi
+
+        echo ""
+        echo "Iteration $i complete. Continuing in 2s..."
         sleep 2
     done
 
     echo ""
     echo "Milhouse reached max iterations ($turns) without completing all tasks."
     echo "Check $PROGRESS_FILE for status."
+    trap - INT TERM
     return 1
 }
