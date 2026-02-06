@@ -45,7 +45,7 @@
         "Agent commits changes with proper format: 'feat: US-003 - OpenCode CLI Tool Verification'"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Run with: milhouse run --tool opencode 1. Requires opencode to be installed."
     },
     {
