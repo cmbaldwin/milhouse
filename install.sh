@@ -10,9 +10,11 @@ mkdir -p ~/.local/bin
 cp milhouse ~/.local/bin/milhouse
 chmod +x ~/.local/bin/milhouse
 
-# Copy lib directory (preserve structure for $SCRIPT_DIR/lib/* paths)
+# Copy lib directory and prompt files (preserve structure for $SCRIPT_DIR/lib/* paths)
 mkdir -p ~/.local/lib/milhouse
 cp -r lib ~/.local/lib/milhouse/
+cp prompt.md ~/.local/lib/milhouse/
+cp prompt.example-rails.md ~/.local/lib/milhouse/
 
 # Update milhouse to use global lib path
 sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="$HOME/.local/lib/milhouse"|' ~/.local/bin/milhouse
