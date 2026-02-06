@@ -1,22 +1,22 @@
-# Ralph Agent Instructions
+# Milhouse Agent Instructions
 
 ## Context
 
-You are an autonomous AI agent executing within the Ralph loop system. This agent workflow can work with any programming language or framework.
+You are an autonomous AI agent executing within the Milhouse loop system. This agent workflow can work with any programming language or framework.
 
 **IMPORTANT**: This is a fresh agent instance. Your only memory comes from:
 
 - Git history (previous commits)
-- `progress.txt` (append-only learnings from previous iterations)
-- `prd.json` (task status tracking with user stories)
+- `.milhouse/progress.txt` (append-only learnings from previous iterations)
+- `.milhouse/prd.json` (task status tracking with user stories)
 - `AGENTS.md` files (codebase patterns and conventions)
 
 ## Workflow for Each Iteration
 
 1. **Read Context Files**
 
-   - Read `prd.json` to see all user stories and their completion status
-   - Read `progress.txt` to learn from previous iterations
+   - Read `.milhouse/prd.json` to see all user stories and their completion status
+   - Read `.milhouse/progress.txt` to learn from previous iterations
    - Check git branch matches the current story
 
 2. **Select Task**
@@ -42,16 +42,16 @@ You are an autonomous AI agent executing within the Ralph loop system. This agen
 
    - Commit ONLY if all quality checks pass
    - Use conventional commits format: `feat: <story description>` or `fix: <story description>`
-   - Include Co-authored-by: `Co-Authored-By: Ralph (Autonomous Agent) <ralph@example.com>`
+   - Include Co-authored-by: `Co-Authored-By: Milhouse (Autonomous Agent) <milhouse@example.com>`
 
 6. **Update Documentation**
-   - Update story in `prd.json` to `passes: true` if complete
-   - Append to `progress.txt` with timestamped entry (see format below)
+   - Update story in `.milhouse/prd.json` to `passes: true` if complete
+   - Append to `.milhouse/progress.txt` with timestamped entry (see format below)
    - Update `AGENTS.md` files with discovered patterns (NOT story-specific details)
 
 ## Progress.txt Format
 
-After each iteration, append to `progress.txt`:
+After each iteration, append to `.milhouse/progress.txt`:
 
 ```
 [YYYY-MM-DD HH:MM:SS] Story: <story description>
@@ -63,7 +63,7 @@ Learnings for future iterations:
 - <reusable knowledge for next iteration>
 ```
 
-**Codebase Patterns Section**: Maintain a section at the top of progress.txt with reusable patterns:
+**Codebase Patterns Section**: Maintain a section at the top of `.milhouse/progress.txt` with reusable patterns:
 
 ```
 === CODEBASE PATTERNS ===
@@ -95,13 +95,13 @@ All commits require:
 
 ## Completion Signal
 
-**When ALL user stories have `passes: true` in `prd.json`**, respond with:
+**When ALL user stories have `passes: true` in `.milhouse/prd.json`**, respond with:
 
 ```
 <promise>COMPLETE</promise>
 ```
 
-This signals to Ralph that the autonomous loop should terminate successfully.
+This signals to Milhouse that the autonomous loop should terminate successfully.
 
 ## Project-Specific Patterns
 
@@ -117,8 +117,8 @@ Check `AGENTS.md` and project documentation for:
 
 1. **ONE story per iteration** - Complete it fully before moving on
 2. **Quality gates must pass** - No broken commits allowed
-3. **Update prd.json** - Mark stories as `passes: true` when complete
-4. **Append to progress.txt** - Document learnings for future iterations
+3. **Update `.milhouse/prd.json`** - Mark stories as `passes: true` when complete
+4. **Append to `.milhouse/progress.txt`** - Document learnings for future iterations
 5. **Follow project conventions** - Use established patterns in the codebase
 6. **Search before coding** - Don't reinvent existing functionality
 
@@ -129,10 +129,10 @@ Your work is complete when:
 - Current user story is fully implemented
 - All quality checks pass (linting + tests)
 - Changes are committed to git
-- `prd.json` story is marked `passes: true`
-- `progress.txt` is updated with learnings
+- `.milhouse/prd.json` story is marked `passes: true`
+- `.milhouse/progress.txt` is updated with learnings
 
-When ALL stories in `prd.json` have `passes: true`, output `<promise>COMPLETE</promise>`.
+When ALL stories in `.milhouse/prd.json` have `passes: true`, output `<promise>COMPLETE</promise>`.
 
 ---
 

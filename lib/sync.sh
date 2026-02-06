@@ -58,15 +58,12 @@ setup_qmd_for_project() {
 update_claude_md() {
     local instance_dir="$1"
     local project_dir="$2"
-    local claude_md="$instance_dir/CLAUDE.md"
+    local claude_md="$project_dir/CLAUDE.md"
     local project_name="$(basename "$project_dir")"
 
-    # Check if parent project has CLAUDE.md
-    local parent_claude="$project_dir/CLAUDE.md"
-
     if [[ ! -f "$claude_md" ]]; then
-        echo "  + Creating CLAUDE.md"
-        create_claude_md_template "$instance_dir" "$project_name"
+        echo "  + Creating CLAUDE.md at project root"
+        create_claude_md_template "$project_dir" "$project_name"
         return
     fi
 
@@ -122,10 +119,10 @@ EOF
 
     echo "✓ Created .milhouse-source marker"
 
-    # Create CLAUDE.md template
-    if [[ ! -f "$milhouse_dir/CLAUDE.md" ]]; then
-        create_claude_md_template "$milhouse_dir" "$(basename "$target_dir")"
-        echo "✓ Created CLAUDE.md template"
+    # Create CLAUDE.md template at project root
+    if [[ ! -f "$target_dir/CLAUDE.md" ]]; then
+        create_claude_md_template "$target_dir" "$(basename "$target_dir")"
+        echo "✓ Created CLAUDE.md template at project root"
     fi
 
     # Create prd.json template
@@ -153,16 +150,16 @@ EOF
     echo "✓ Milhouse installation complete!"
     echo ""
     echo "Next steps:"
-    echo "  1. Edit .milhouse/CLAUDE.md with your project context"
+    echo "  1. Edit CLAUDE.md with your project context"
     echo "  2. Edit .milhouse/prd.json with your user stories"
     echo "  3. Run: milhouse run"
 }
 
 create_claude_md_template() {
-    local milhouse_dir="$1"
+    local target_dir="$1"
     local project_name="$2"
 
-    cat > "$milhouse_dir/CLAUDE.md" << 'EOF'
+    cat > "$target_dir/CLAUDE.md" << 'EOF'
 # Project Instructions for Milhouse
 
 ## Project Overview
@@ -206,8 +203,8 @@ Run these before marking a story complete:
 EOF
 
     # Replace PROJECT_NAME placeholder
-    sed -i.bak "s/PROJECT_NAME/$project_name/g" "$milhouse_dir/CLAUDE.md"
-    rm "$milhouse_dir/CLAUDE.md.bak" 2>/dev/null || true
+    sed -i.bak "s/PROJECT_NAME/$project_name/g" "$target_dir/CLAUDE.md"
+    rm "$target_dir/CLAUDE.md.bak" 2>/dev/null || true
 }
 
 create_prd_template() {

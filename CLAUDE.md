@@ -48,8 +48,8 @@ The `milhouse` qmd collection includes:
 - **agents.md** - Agent behavior and patterns
 - **skills/prd/skill.md** - PRD management skill
 - **skills/milhouse/skill.md** - Milhouse workflow skill
-- **prompt.md** - Legacy prompt format
-- **prompt-example-rails.md** - Rails-specific example
+- **prompt.md** - Agent iteration workflow template (combined with CLAUDE.md at runtime)
+- **prompt-example-rails.md** - Rails-specific example prompt
 
 ### Search Workflow
 
@@ -70,21 +70,37 @@ The `milhouse` qmd collection includes:
 ## Project Structure
 
 ```
-milhouse/
-├── milhouse.sh                           # Main agent script (multi-backend)
-├── milhouse-copilot.sh                   # GitHub Copilot CLI variant
-├── milhouse-autorun.sh                   # Auto-runner daemon script
-├── milhouse-autorun                      # Auto-runner management CLI
-├── CLAUDE.md                          # This file
-├── README.md                          # Main documentation
+milhouse/                                 # This repo
+├── milhouse                              # Main CLI entry point
+├── lib/
+│   ├── agent.sh                          # Core agent loop (build_prompt, run_agent, archiving)
+│   ├── autorun.sh                        # Auto-runner daemon
+│   ├── sync.sh                           # Install/sync milhouse into projects
+│   ├── qmd.sh                            # Documentation search integration
+│   └── ruby.sh                           # Ruby/Rails defaults
+├── prompt.md                             # Agent iteration workflow (combined with project CLAUDE.md at runtime)
+├── prompt.example-rails.md               # Rails-specific example prompt
+├── CLAUDE.md                             # This file
+├── README.md                             # Main documentation
 ├── Milhouse-AutoRunner-README.md         # Auto-runner docs
-├── agents.md                          # Agent patterns
-├── skills/                            # Skill definitions
-│   ├── prd/SKILL.md                  # PRD management
-│   └── milhouse/SKILL.md                # Milhouse workflow
-└── flowchart/                         # Interactive visualization
-    ├── src/                          # React Flow app
-    └── README.md                     # Visualization docs
+├── agents.md                             # Agent patterns
+├── skills/
+│   ├── prd/SKILL.md                      # PRD management skill
+│   └── milhouse/SKILL.md                 # PRD converter skill
+└── flowchart/                            # Interactive visualization
+```
+
+### Target Project Structure (after `milhouse install`)
+
+```
+your-project/
+├── CLAUDE.md                             # Project-specific context (tech stack, quality commands, conventions)
+├── .milhouse/
+│   ├── prd.json                          # User stories with passes: true/false
+│   ├── progress.txt                      # Append-only learning journal
+│   ├── archive/                          # Archived completed runs
+│   └── .milhouse-source                  # Installation marker
+└── ...
 ```
 
 ## Ruby/Rails Defaults
@@ -119,6 +135,16 @@ milhouse ruby status   # Check installation status
 
 ## Core Concepts
 
+### Prompt Architecture
+
+At runtime, milhouse combines two files into a single prompt for all tools:
+
+1. **`prompt.md`** (from milhouse repo) — Agent iteration workflow instructions. Tells the agent how to work: read prd.json, pick one story, implement it, run quality checks, commit, update progress.txt, signal completion. Same for all projects.
+
+2. **`CLAUDE.md`** (from project root) — Project-specific context. Tech stack, quality commands, conventions, patterns. Different for each project.
+
+The combined prompt is fed identically to all backends (Claude, Copilot, OpenCode, AMP).
+
 ### PRD Files (prd.json)
 - Located in `your-project/.milhouse/prd.json`
 - Contains user stories with `passes` boolean field
@@ -126,15 +152,21 @@ milhouse ruby status   # Check installation status
 - Updates `passes: true` when complete
 
 ### CLAUDE.md Files
-- Project-specific agent instructions
-- Located in `your-project/.milhouse/CLAUDE.md`
+- Project-specific context and instructions
+- Located at **project root** (`your-project/CLAUDE.md`)
 - Defines quality checks, conventions, tech stack
-- Used by milhouse.sh to generate prompts
+- Combined with prompt.md at runtime to build the agent prompt
 
 ### Progress Tracking
-- `progress.txt` - Append-only learning journal
+- `.milhouse/progress.txt` - Append-only learning journal
 - Documents what was completed each run
 - Helps agents learn from previous work
+
+### Post-Run Archiving
+- When all stories complete (`<promise>COMPLETE</promise>`), the run is archived
+- Archives prd.json and progress.txt to `.milhouse/archive/YYYY-MM-DD-branch-name/`
+- Also archives on branch change between runs
+- Progress file is reset for the next run
 
 ### Auto-Runner
 - System-wide service (macOS LaunchAgent)
@@ -170,16 +202,22 @@ milhouse ruby status   # Check installation status
 
 ### Testing Changes
 
-**Test milhouse.sh:**
+**Test milhouse CLI:**
 ```bash
-cd /Users/cody/Dev/milhouse
-./milhouse.sh --help
+milhouse help
+milhouse version
+```
+
+**Test agent run (single iteration):**
+```bash
+cd /path/to/project
+milhouse run 1
 ```
 
 **Test auto-runner:**
 ```bash
-milhouse-autorun test  # Dry run
-milhouse-autorun logs  # Check recent activity
+milhouse autorun test   # Dry run
+milhouse autorun logs   # Check recent activity
 ```
 
 **Verify qmd index is current:**
@@ -265,10 +303,13 @@ qmd update                           # Update index after doc changes
 
 ### Milhouse Commands
 ```bash
-milhouse-autorun status                 # Check auto-runner status
-milhouse-autorun logs                   # View recent activity
-milhouse-autorun schedule               # Show operating hours
-milhouse-autorun test                   # Dry run (doesn't execute)
+milhouse run [turns]                    # Run agent (default 25 turns)
+milhouse run --tool claude 1            # Single iteration with Claude
+milhouse autorun status                 # Check auto-runner status
+milhouse autorun logs                   # View recent activity
+milhouse autorun schedule               # Show operating hours
+milhouse autorun test                   # Dry run (doesn't execute)
+milhouse install .                      # Install milhouse into current project
 ```
 
 ### File Locations
