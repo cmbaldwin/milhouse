@@ -280,12 +280,16 @@ run_agent() {
         echo ""
     fi
 
-    # Build unified prompt (agent workflow instructions + project context)
-    PROMPT=$(build_prompt "$PROJECT_DIR")
-    if [[ $? -ne 0 ]]; then
+    # Build unified prompt and write to temp file (avoids shell argument issues with large prompts)
+    local PROMPT_FILE=$(mktemp)
+    build_prompt "$PROJECT_DIR" > "$PROMPT_FILE"
+    if [[ $? -ne 0 ]] || [[ ! -s "$PROMPT_FILE" ]]; then
         echo "Failed to build prompt. Ensure prompt.md exists."
+        rm -f "$PROMPT_FILE"
         return 1
     fi
+    local prompt_size=$(wc -c < "$PROMPT_FILE" | tr -d ' ')
+    echo "Prompt built: ${prompt_size} bytes"
 
     echo "Starting Milhouse - Tool: $tool - Max iterations: $turns - Timeout: ${timeout_mins}m/iter"
     echo "Press Ctrl+C to stop at any time."
@@ -309,6 +313,7 @@ run_agent() {
                 echo ""
                 echo "All stories in prd.json are complete!"
                 archive_completed_run "$MILHOUSE_DIR"
+                rm -f "$PROMPT_FILE"
                 trap - INT TERM
                 return 0
             fi
@@ -322,19 +327,28 @@ run_agent() {
         case "$tool" in
             claude)
                 if [ "$verbose" = "true" ]; then
-                    timeout "${timeout_mins}m" claude -p "$PROMPT" --dangerously-skip-permissions --print 2>&1 | tee "$tmpfile" || exit_code=$?
+                    (timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print < "$PROMPT_FILE" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                    exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
+                    rm -f "$tmpfile.rc"
                 else
-                    timeout "${timeout_mins}m" claude -p "$PROMPT" --dangerously-skip-permissions --print > "$tmpfile" 2>&1 || exit_code=$?
+                    timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print < "$PROMPT_FILE" > "$tmpfile" 2>&1
+                    exit_code=$?
                 fi
                 ;;
             copilot)
-                timeout "${timeout_mins}m" bash -c 'gh copilot --allow-all -p "$1" 2>&1' _ "$PROMPT" | tee "$tmpfile" || exit_code=$?
+                (timeout "${timeout_mins}m" bash -c 'gh copilot --allow-all -p "$(cat "$1")" 2>&1' _ "$PROMPT_FILE"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
+                rm -f "$tmpfile.rc"
                 ;;
             opencode)
-                timeout "${timeout_mins}m" opencode run -m opencode/kimi-k2.5-free "$PROMPT" 2>&1 | tee "$tmpfile" || exit_code=$?
+                (timeout "${timeout_mins}m" bash -c 'opencode run -m opencode/kimi-k2.5-free "$(cat "$1")" 2>&1' _ "$PROMPT_FILE"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
+                rm -f "$tmpfile.rc"
                 ;;
             amp)
-                echo "$PROMPT" | timeout "${timeout_mins}m" amp --dangerously-allow-all 2>&1 | tee "$tmpfile" || exit_code=$?
+                (timeout "${timeout_mins}m" amp --dangerously-allow-all < "$PROMPT_FILE" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
+                rm -f "$tmpfile.rc"
                 ;;
         esac
 
@@ -360,6 +374,7 @@ run_agent() {
             echo ""
             echo "ERROR: $MAX_CONSECUTIVE_FAILURES consecutive failures. Stopping."
             echo "Check $PROGRESS_FILE for status."
+            rm -f "$PROMPT_FILE"
             trap - INT TERM
             return 1
         fi
@@ -370,6 +385,7 @@ run_agent() {
             echo "Milhouse completed all tasks!"
             echo "Completed at iteration $i of $turns"
             archive_completed_run "$MILHOUSE_DIR"
+            rm -f "$PROMPT_FILE"
             trap - INT TERM
             return 0
         fi
@@ -389,6 +405,7 @@ run_agent() {
     echo ""
     echo "Milhouse reached max iterations ($turns) without completing all tasks."
     echo "Check $PROGRESS_FILE for status."
+    rm -f "$PROMPT_FILE"
     trap - INT TERM
     return 1
 }
