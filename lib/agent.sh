@@ -357,53 +357,16 @@ run_agent() {
         local tmpfile=$(mktemp)
 
         local exit_code=0
-        case "$tool" in
-            claude)
-                if [ "$verbose" = "true" ]; then
-                    (timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" < /dev/null 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
-                    exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
-                    rm -f "$tmpfile.rc"
-                else
-                    timeout "${timeout_mins}m" claude --dangerously-skip-permissions --print "$SIMPLE_PROMPT" < /dev/null > "$tmpfile" 2>&1
-                    exit_code=$?
-                fi
-                ;;
-            copilot)
-                (timeout "${timeout_mins}m" bash -c 'gh copilot --allow-all -p "$1" 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
-                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
-                rm -f "$tmpfile.rc"
-                ;;
-            opencode)
-                (timeout "${timeout_mins}m" bash -c 'opencode run -m opencode/kimi-k2.5-free "$1" 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
-                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
-                rm -f "$tmpfile.rc"
-                ;;
-            amp)
-                # AMP reads from stdin, so we pass the simple prompt via stdin
-                (timeout "${timeout_mins}m" bash -c 'echo "$1" | amp --dangerously-allow-all' _ "$SIMPLE_PROMPT" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
-                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
-                rm -f "$tmpfile.rc"
-                ;;
-            pi)
-
-                # Pi Coding Agent
-                # The tool attempts to start a TUI if it detects a TTY.
-                # We need to force it into non-interactive mode.
-                # According to common patterns, redirecting stdin from /dev/null might help if it checks isatty
-                # OR we need a specific flag.
-                # For now, let's try to run it with </dev/null to break TTY detection if it relies on stdin being a TTY.
-                # AND ensure we pass the prompt clearly.
-                # If 'pi' expects the prompt as an argument, "$1" is correct.
-                # We also remove --yes if it's not a real flag (it wasn't in the help text I saw, I guessed it).
-                
-                # Let's try to find the correct non-interactive invocation.
-                # Inspecting the error: "InteractiveMode.init". We want "HeadlessMode" or "ScriptMode".
-                # I will try to pass the prompt via argument and redirect stdin to /dev/null to prevent TUI.
-                (timeout "${timeout_mins}m" bash -c 'pi "$1" < /dev/null 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
-                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
-                rm -f "$tmpfile.rc"
-                ;;
-        esac
+        # Execute tool adapter
+        local run_func="${tool}_run"
+        if command -v "$run_func" &> /dev/null; then
+             "$run_func" "$SIMPLE_PROMPT" "$tmpfile" "$timeout_mins" "$verbose"
+             exit_code=$?
+        else
+             echo "Error: No adapter found for tool '$tool'"
+             # Fallback or error
+             exit_code=1
+        fi
 
         OUTPUT=$(cat "$tmpfile")
         rm -f "$tmpfile"

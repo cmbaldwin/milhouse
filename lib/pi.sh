@@ -63,6 +63,24 @@ pi_config() {
     fi
 }
 
+pi_run() {
+    local prompt="$1"
+    local output_file="$2"
+    local timeout_mins="$3"
+
+    local exit_code=0
+    local tmp_rc=$(mktemp)
+
+    # Pi Coding Agent
+    # The tool attempts to start a TUI if it detects a TTY.
+    # We force non-interactive mode by redirecting stdin from /dev/null
+    (timeout "${timeout_mins}m" bash -c 'pi "$1" < /dev/null 2>&1' _ "$prompt"; echo $? > "$tmp_rc") | tee "$output_file"
+    exit_code=$(cat "$tmp_rc" 2>/dev/null || echo 1)
+    
+    rm -f "$tmp_rc"
+    return $exit_code
+}
+
 pi_help() {
     cat << EOF
 Milhouse Pi-Mono Commands

@@ -18,6 +18,10 @@ source "$SCRIPT_DIR/lib/sync.sh"
 source "$SCRIPT_DIR/lib/qmd.sh"
 source "$SCRIPT_DIR/lib/ruby.sh"
 source "$SCRIPT_DIR/lib/pi.sh"
+source "$SCRIPT_DIR/lib/claude.sh"
+source "$SCRIPT_DIR/lib/copilot.sh"
+source "$SCRIPT_DIR/lib/opencode.sh"
+source "$SCRIPT_DIR/lib/amp.sh"
 
 VERSION="2.0.1"
 
