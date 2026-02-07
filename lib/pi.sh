@@ -73,8 +73,9 @@ pi_run() {
 
     # Pi Coding Agent
     # The tool attempts to start a TUI if it detects a TTY.
-    # We force non-interactive mode by redirecting stdin from /dev/null
-    (timeout "${timeout_mins}m" bash -c 'pi "$1" < /dev/null 2>&1' _ "$prompt"; echo $? > "$tmp_rc") | tee "$output_file"
+    # We force non-interactive mode by piping "exit" which handles both TUI suppression
+    # and ensuring the session terminates after the prompt is processed.
+    (timeout "${timeout_mins}m" bash -c 'echo "exit" | pi "$1" 2>&1' _ "$prompt"; echo $? > "$tmp_rc") | tee "$output_file"
     exit_code=$(cat "$tmp_rc" 2>/dev/null || echo 1)
     
     rm -f "$tmp_rc"
