@@ -1,438 +1,331 @@
-# Ralph Agent Instructions
+# Milhouse Project - AI Agent Instructions
 
-## Overview
+## Project Overview
 
-Ralph is an autonomous AI agent loop that runs repeatedly until all PRD items are complete. Each iteration is a fresh agent instance with clean context.
+Milhouse is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, AMP) and can run both manually and automatically via scheduled tasks.
 
-## Core Principles
+**Repository**: `/Users/cody/Dev/milhouse`
 
-### Memory & Context
+## Documentation Search with qmd
 
-- **No persistent memory between iterations** - Each Ralph instance starts fresh
-- **Memory persists via:**
-  - Git commit history
-  - `progress.txt` - append-only learning journal
-  - `prd.json` - completion status tracking
-  - `AGENTS.md` - discovered patterns for future iterations
+This project is indexed with **qmd** for fast documentation search. Use this FIRST before making changes or when you need context.
 
-### Task Management
+### When to Use qmd
 
-- **One story at a time** - Complete implementation of single user story per iteration
-- **Priority-driven** - Select highest priority incomplete story (`passes: false`)
-- **Quality gates** - Must pass all checks before marking complete
-- **Atomic commits** - One commit per story completion
+**ALWAYS search documentation before:**
+- Making changes to core scripts (milhouse.sh, milhouse-autorun.sh, etc.)
+- Answering questions about how Milhouse works
+- Understanding system architecture or design decisions
+- Finding examples of similar functionality
+- Checking existing conventions or patterns
 
-### Learning & Patterns
+### How to Search
 
-- **Always update AGENTS.md** with discovered patterns for future iterations
-- **Document in progress.txt** after each story completion
-- **Search before coding** - Look for existing patterns in codebase
-- **Follow project conventions** - Read CLAUDE.md for project-specific patterns
+**Keyword search (fast, default):**
+```bash
+qmd search "AutoRunner" -c milhouse
+qmd search "PRD structure" -c milhouse
+qmd search "branch management" -c milhouse
+```
 
-## Ralph Execution Flow
+**Get specific documents:**
+```bash
+qmd get qmd://milhouse/readme.md
+qmd get qmd://milhouse/milhouse-autorunner-readme.md
+```
 
-1. **Context Gathering**
+**List all documentation:**
+```bash
+qmd ls milhouse
+```
 
+### Available Documentation
+
+The `milhouse` qmd collection includes:
+- **readme.md** - Main system documentation
+- **milhouse-autorunner-readme.md** - Auto-runner configuration and usage
+- **milhouse-system-complete-documentation.md** - Complete system reference
+- **agents.md** - Agent behavior and patterns
+- **skills/prd/skill.md** - PRD management skill
+- **skills/milhouse/skill.md** - Milhouse workflow skill
+- **prompt.md** - Agent iteration workflow template (combined with CLAUDE.md at runtime)
+- **prompt-example-rails.md** - Rails-specific example prompt
+
+### Search Workflow
+
+1. **Before any code changes:**
    ```bash
-   # Ralph reads these files first
-   - prd.json           # Find incomplete stories
-   - progress.txt       # Previous learnings
-   - CLAUDE.md          # Project conventions
-   - AGENTS.md          # Discovered patterns
-   - git log            # Recent changes
+   qmd search "relevant keywords" -c milhouse
    ```
 
-2. **Task Selection**
+2. **Review the results** - Read the relevant sections
 
+3. **Get full documents if needed:**
    ```bash
-   # Find highest priority incomplete story
-   jq -r '.userStories[] | select(.passes == false) |
-     [.priority, .id, .title] | @tsv' prd.json |
-     sort -n | head -1
+   qmd get qmd://milhouse/path/to/file.md
    ```
 
-3. **Implementation**
-   - Search codebase for existing patterns
-   - Implement feature completely
-   - Follow acceptance criteria exactly
-   - Write/update tests as needed
+4. **Make informed changes** based on existing patterns
 
-4. **Quality Checks**
+## Project Structure
 
+```
+milhouse/                                 # This repo
+├── milhouse                              # Main CLI entry point
+├── lib/
+│   ├── agent.sh                          # Core agent loop (build_prompt, run_agent, archiving)
+│   ├── autorun.sh                        # Auto-runner daemon
+│   ├── sync.sh                           # Install/sync milhouse into projects
+│   ├── qmd.sh                            # Documentation search integration
+│   └── ruby.sh                           # Ruby/Rails defaults
+├── prompt.md                             # Agent iteration workflow (combined with project CLAUDE.md at runtime)
+├── prompt.example-rails.md               # Rails-specific example prompt
+├── CLAUDE.md                             # This file
+├── README.md                             # Main documentation
+├── Milhouse-AutoRunner-README.md         # Auto-runner docs
+├── agents.md                             # Agent patterns
+├── skills/
+│   ├── prd/SKILL.md                      # PRD management skill
+│   └── milhouse/SKILL.md                 # PRD converter skill
+└── flowchart/                            # Interactive visualization
+```
+
+### Target Project Structure (after `milhouse install`)
+
+```
+your-project/
+├── CLAUDE.md                             # Project-specific context (tech stack, quality commands, conventions)
+├── .milhouse/
+│   ├── prd.json                          # User stories with passes: true/false
+│   ├── progress.txt                      # Append-only learning journal
+│   ├── archive/                          # Archived completed runs
+│   └── .milhouse-source                  # Installation marker
+└── ...
+```
+
+## Ruby/Rails Defaults
+
+Milhouse is an opinionated Ruby AI automation tool with curated skills and MCP servers.
+
+### Setup
+
+```bash
+milhouse ruby setup    # Install all Ruby/Rails tools
+milhouse ruby status   # Check installation status
+```
+
+### Included Skills
+
+| Skill | Command | Source |
+|-------|---------|--------|
+| Rails System Test Analyzer | `/rails-system-test-analyzer` | [robzolkos/skill-rails-system-test-analyzer](https://github.com/robzolkos/skill-rails-system-test-analyzer) |
+| Rails Upgrade Assistant | `/rails-upgrade-assistant` | [maquina-app/rails-upgrade-skill](https://github.com/maquina-app/rails-upgrade-skill) |
+| RubyCritic | (model-invoked) | [esparkman/claude-rubycritic-skill](https://github.com/esparkman/claude-rubycritic-skill) |
+
+### Included MCP Server
+
+| Server | Source |
+|--------|--------|
+| rails-mcp-server | [maquina-app/rails-mcp-server](https://github.com/maquina-app/rails-mcp-server) |
+
+### Key Files
+
+- `lib/ruby.sh` - Ruby/Rails setup functions
+- `defaults/ruby/README.md` - Full Ruby/Rails documentation
+
+## Core Concepts
+
+### Prompt Architecture
+
+At runtime, milhouse combines two files into a single prompt for all tools:
+
+1. **`prompt.md`** (from milhouse repo) — Agent iteration workflow instructions. Tells the agent how to work: read prd.json, pick one story, implement it, run quality checks, commit, update progress.txt, signal completion. Same for all projects.
+
+2. **`CLAUDE.md`** (from project root) — Project-specific context. Tech stack, quality commands, conventions, patterns. Different for each project.
+
+The combined prompt is fed identically to all backends (Claude, Copilot, OpenCode, AMP).
+
+### PRD Files (prd.json)
+- Located in `your-project/.milhouse/prd.json`
+- Contains user stories with `passes` boolean field
+- Milhouse processes stories where `passes: false`
+- Updates `passes: true` when complete
+
+### CLAUDE.md Files
+- Project-specific context and instructions
+- Located at **project root** (`your-project/CLAUDE.md`)
+- Defines quality checks, conventions, tech stack
+- Combined with prompt.md at runtime to build the agent prompt
+
+### Progress Tracking
+- `.milhouse/progress.txt` - Append-only learning journal
+- Documents what was completed each run
+- Helps agents learn from previous work
+
+### Post-Run Archiving
+- When all stories complete (`<promise>COMPLETE</promise>`), the run is archived
+- Archives prd.json and progress.txt to `.milhouse/archive/YYYY-MM-DD-branch-name/`
+- Also archives on branch change between runs
+- Progress file is reset for the next run
+
+### Auto-Runner
+- System-wide service (macOS LaunchAgent)
+- Scans `~/dev/**/.milhouse/prd.json` hourly
+- Runs Milhouse on first incomplete PRD found
+- Configurable operating hours (default: 9 PM - 7 AM)
+- Managed via `milhouse-autorun` command
+
+## Development Guidelines
+
+### Making Changes to Milhouse
+
+1. **Search documentation first:**
    ```bash
-   # Project-specific checks (defined in CLAUDE.md)
-   # Examples:
-   bundle exec rubocop --autocorrect  # Ruby/Rails
-   npm run lint -- --fix              # Node.js
-   pytest                             # Python
+   qmd search "topic" -c milhouse
    ```
 
-5. **Documentation & Commit**
+2. **Understand existing patterns** - Read relevant docs
 
+3. **Test locally** before committing
+
+4. **Update documentation** if changing core functionality
+
+5. **Keep commit messages descriptive**
+
+### Code Style
+
+- **Bash scripts**: Follow existing patterns in milhouse.sh
+- **Use oroshi patterns**: Check oroshi integration in codebase
+- **Configuration**: Support both env vars and config files
+- **Logging**: Log important events with timestamps
+- **Error handling**: Capture errors and provide helpful messages
+
+### Testing Changes
+
+**Test milhouse CLI:**
+```bash
+milhouse help
+milhouse version
+```
+
+**Test agent run (single iteration):**
+```bash
+cd /path/to/project
+milhouse run 1
+```
+
+**Test auto-runner:**
+```bash
+milhouse autorun test   # Dry run
+milhouse autorun logs   # Check recent activity
+```
+
+**Verify qmd index is current:**
+```bash
+qmd status
+qmd search "test query" -c milhouse
+```
+
+## Common Tasks
+
+### Updating Documentation
+
+When you modify README.md, Milhouse-AutoRunner-README.md, or other markdown files:
+
+1. **Update the qmd index:**
    ```bash
-   # Update tracking files
-   - Mark story passes: true in prd.json
-   - Append learnings to progress.txt
-   - Commit with standard format
+   qmd update
    ```
 
-6. **Stop Condition**
-   - Output `<promise>COMPLETE</promise>` when all stories pass
-   - Ralph loop detects this and stops
+2. **Verify the changes are indexed:**
+   ```bash
+   qmd search "new content" -c milhouse
+   ```
 
-## File Formats
+### Adding New Features
 
-### prd.json Structure
+1. **Search for similar features:**
+   ```bash
+   qmd search "feature name" -c milhouse
+   ```
 
-```json
-{
-  "project": "project-name",
-  "branchName": "feature/branch-name",
-  "description": "Feature description",
-  "userStories": [
-    {
-      "id": "US-001",
-      "title": "Story title",
-      "description": "User story description",
-      "acceptanceCriteria": [
-        "Specific, testable criterion 1",
-        "Specific, testable criterion 2"
-      ],
-      "priority": 1,
-      "passes": false,
-      "notes": "Additional context"
-    }
-  ]
-}
-```
+2. **Follow existing patterns** found in documentation
 
-### progress.txt Format
+3. **Update relevant documentation** (README.md, etc.)
 
-```
-[YYYY-MM-DD HH:MM:SS] Story: US-XXX - Story Title
-Implemented: <what was built>
-Files: <list of modified files>
-Tests: PASSING
-Learnings:
-- <reusable pattern discovered>
-- <gotcha or constraint found>
----
-```
+4. **Update qmd index:**
+   ```bash
+   qmd update
+   ```
 
-### Commit Message Format
+### Troubleshooting
 
-```
-feat: US-XXX - User story title
+**If qmd returns no results:**
+- Check collection status: `qmd status`
+- Update index: `qmd update`
+- List files: `qmd ls milhouse`
 
-- Bullet point of change 1
-- Bullet point of change 2
-- Files modified: file1.rb, file2.rb
-- Tests: PASSING
-
-Co-Authored-By: Ralph (Autonomous Agent) <ralph@example.com>
-```
-
-## Multi-Backend Support
-
-Milhouse supports four AI backends with a **standardized interface** for consistent behavior:
-
-### Output Control (All Backends)
-
-```bash
-# Verbose mode (default) - streaming output, detailed logs
-milhouse run --verbose 25
-milhouse run --tool copilot --verbose 25
-
-# Quiet mode - minimal output, final results only
-milhouse run --quiet 25
-milhouse run --tool claude --quiet 25
-```
-
-**Key Differences:**
-- **Verbose (default)**: Streaming output, real-time progress, detailed logs
-- **Quiet**: Minimal output, only completion messages and final results
-
-### 1. Claude CLI (Default)
-
-```bash
-milhouse run 25
-milhouse run --tool claude 25
-milhouse run --tool claude --verbose 25   # Streaming output
-milhouse run --tool claude --quiet 25      # Minimal output
-
-# Features:
-- Playwright MCP support (browser automation)
-- Full tool access
-- Preferred for browser testing
-- Verbose: claude --dangerously-skip-permissions < CLAUDE.md
-- Quiet: claude --dangerously-skip-permissions --print < CLAUDE.md
-```
-
-### 2. GitHub Copilot CLI
-
-```bash
-milhouse run --tool copilot 25
-milhouse run --tool copilot --verbose 25   # Default behavior
-
-# Features:
-- Native GitHub integration
-- Uses --allow-all for permissions
-- Streams output by default
-- Command: gh copilot --allow-all -p "prompt"
-```
-
-### 3. OpenCode
-
-```bash
-milhouse run --tool opencode 25
-milhouse run --tool opencode --verbose 25  # Streaming output (default)
-milhouse run --tool opencode --quiet 25   # Minimal output
-
-# Features:
-- Open source AI coding assistant
-- Streams output by default
-- Supports quiet mode (no streaming)
-- Full MCP server support
-- Command: opencode run "prompt"
-```
-
-### 4. AMP
-
-```bash
-milhouse run --tool amp 15
-milhouse run --tool amp --verbose 15       # Default behavior
-
-# Features:
-- Uses prompt.md format instead of CLAUDE.md
-- Streams output by default
-- Command: amp --dangerously-allow-all
-```
-
-### Standardized Interface Design
-
-All backends now provide consistent verbosity behavior:
-
-1. **Default Mode**: Verbose/streaming output (matches Copilot's natural behavior)
-2. **Quiet Mode**: Available via `--quiet` flag for all backends
-3. **Output Capture**: All backends use `2>&1 | tee /dev/stderr` for consistent logging
-4. **Completion Detection**: All backends output `<promise>COMPLETE</promise>` signal
-
-## Auto-Runner System
-
-Ralph can run automatically every hour via `ralph-autorun`:
-
-```bash
-# Management commands
-ralph-autorun status    # Check if running
-ralph-autorun start     # Start hourly scheduler
-ralph-autorun stop      # Stop scheduler
-ralph-autorun test      # Run once manually
-ralph-autorun logs      # View activity logs
-ralph-autorun watch     # Watch logs in real-time
-ralph-autorun config    # View or edit schedule
-ralph-autorun schedule  # Show current schedule status
-```
-
-**How it works:**
-
-1. Scans `~/dev/` for `.ralph/prd.json` files
-2. Checks if current time is within operating hours
-3. Finds first PRD with incomplete stories
-4. Runs `ralph.sh --tool claude 15` in that directory
-5. Logs all activity to `~/.ralph-autorun.log`
-6. Runs every hour at :01 past (12:01, 13:01, etc.)
-
-**Schedule configuration:**
-
-By default, Ralph only runs from 9 PM to 7 AM (overnight) to avoid interfering with work hours. Configure in `~/.ralph-autorun.conf`:
-
-```bash
-# OFF hours (Ralph will NOT run during these times)
-OFF_START_HOUR=7   # 7 AM
-OFF_END_HOUR=21    # 9 PM
-
-# AI Backend Configuration
-# Available options: claude, copilot, opencode, amp
-BACKEND=claude
-```
-
-Times are in 24-hour format in your local timezone.
+**If changes aren't reflected:**
+- The qmd index updates on `qmd update`
+- Run it after modifying markdown files
 
 ## Best Practices
 
-### Story Writing
+### For AI Agents Working on Milhouse
 
-- **Atomic stories** - Each story should be independently completable
-- **Clear acceptance criteria** - Testable, specific requirements
-- **Priority ordering** - Use numeric priority (1 = highest)
-- **Browser testing** - Include "Verify in browser using dev-browser skill" if UI changes
+1. ✅ **DO** search qmd before making changes
+2. ✅ **DO** read existing documentation thoroughly
+3. ✅ **DO** follow established patterns and conventions
+4. ✅ **DO** update documentation when adding features
+5. ✅ **DO** test changes before committing
 
-### Implementation Patterns
+6. ❌ **DON'T** modify core scripts without understanding the full system
+7. ❌ **DON'T** skip searching documentation
+8. ❌ **DON'T** introduce breaking changes to stable interfaces
+9. ❌ **DON'T** forget to update qmd index after doc changes
 
-- **Search first** - Look for similar implementations in codebase
-- **Follow conventions** - Match existing code style and patterns
-- **Test coverage** - Write tests for new functionality
-- **Quality first** - Never commit broken code
+### Documentation-First Workflow
 
-### Progress Tracking
+```
+1. Search qmd → 2. Read docs → 3. Understand context → 4. Make changes → 5. Update docs → 6. Update qmd
+```
 
-- **Update AGENTS.md** - Document new patterns discovered
-- **Detailed progress.txt** - Help future iterations understand context
-- **Git commits** - One commit per completed story
-- **Archive on branch change** - Old PRDs auto-archived to `archive/`
+## Quick Reference
 
-### Error Handling
-
-- **Quality check failures** - Fix issues, don't skip
-- **Rate limits** - Ralph waits and retries automatically
-- **Incomplete stories** - Ralph continues from where it left off
-- **Branch switches** - Automatically archives current PRD
-
-## Discovered Patterns
-
-### Pattern: Browser Testing with Playwright MCP
-
-When acceptance criteria includes "Verify in browser":
-
+### qmd Commands
 ```bash
-# Use Claude CLI backend for Playwright MCP support
-./ralph.sh --tool claude 25
-
-# Ralph can then use browser automation:
-- Navigate to pages
-- Take screenshots
-- Click elements
-- Fill forms
-- Verify DOM state
+qmd search "query" -c milhouse          # Search milhouse docs (fast)
+qmd ls milhouse                         # List all files
+qmd get qmd://milhouse/readme.md        # Get specific file
+qmd status                           # Check index status
+qmd update                           # Update index after doc changes
 ```
 
-### Pattern: Archiving Completed PRDs
-
-Ralph auto-archives when branch changes:
-
+### Milhouse Commands
 ```bash
-# Archives to: .ralph/archive/YYYY-MM-DD-branch-name/
-- prd.json
-- progress.txt
+milhouse run [turns]                    # Run agent (default 25 turns)
+milhouse run --tool claude 1            # Single iteration with Claude
+milhouse autorun status                 # Check auto-runner status
+milhouse autorun logs                   # View recent activity
+milhouse autorun schedule               # Show operating hours
+milhouse autorun test                   # Dry run (doesn't execute)
+milhouse install .                      # Install milhouse into current project
 ```
 
-### Pattern: Concurrent Run Prevention
+### File Locations
+- Milhouse repo: `/Users/cody/Dev/milhouse`
+- Auto-runner config: `~/.milhouse-autorun.conf`
+- Auto-runner logs: `~/.milhouse-autorun.log`
+- qmd index: `~/.cache/qmd/index.sqlite`
+- Skills directory: `~/.claude/skills/`
 
-Auto-runner detects if Ralph already running:
+## Emergency Contacts / References
 
-```bash
-# In ralph-autorun.sh:
-if pgrep -f "ralph.sh" > /dev/null; then
-  echo "Ralph already running, skipping"
-  exit 0
-fi
-```
+- Main documentation: [README.md](README.md)
+- Auto-runner docs: [Milhouse-AutoRunner-README.md](Milhouse-AutoRunner-README.md)
+- System reference: [Milhouse-System-Complete-Documentation.md](Milhouse-System-Complete-Documentation.md)
+- qmd skill: `~/.claude/skills/qmd.md`
 
-### Pattern: Multi-Project Management
+---
 
-Auto-runner handles multiple projects:
-
-```bash
-# Searches all of ~/dev/ recursively
-find ~/dev -name "prd.json" ! -path "*/archive/*"
-
-# Runs first incomplete PRD found
-# Only one Ralph instance at a time
-```
-
-### Pattern: Standardized Output Interface
-
-All AI backends now provide consistent verbosity control:
-
-**Problem:** Claude CLI used `--print` flag (quiet mode) while Copilot/OpenCode/AMP streamed verbose output by default, creating inconsistent logging experiences.
-
-**Solution:** Standardized interface with explicit flags:
-- Default is **verbose** mode (streaming output) for all backends
-- `--quiet` flag enables minimal output (no tee for non-Claude backends)
-- `--verbose` flag explicitly enables streaming (matches Copilot's natural behavior)
-
-```bash
-# All backends support same interface
-milhouse run --verbose 25         # Streaming output (default)
-milhouse run --quiet 25           # Minimal output
-milhouse run --tool claude --verbose 25
-milhouse run --tool opencode --quiet 25
-```
-
-**Implementation:**
-- Claude: Uses `--print` flag for quiet mode, streaming without it
-- OpenCode/Copilot/AMP: Remove `tee` in quiet mode, use `tee` in verbose
-- All use `2>&1 | tee /dev/stderr` for consistent output capture
-- Agent shows verbosity level in startup message: `Output: verbose` or `Output: quiet`
-
-### Pattern: MCP Server Support with OpenCode
-
-OpenCode fully supports MCP (Model Context Protocol) servers in both interactive and non-interactive modes:
-
-**Configuration via opencode.json:**
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "rails-mcp-server": {
-      "type": "local",
-      "command": ["npx", "-y", "@maquina/rails-mcp-server"],
-      "enabled": true
-    },
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp"
-    }
-  }
-}
-```
-
-**Key Features:**
-- Local MCP servers via `command` array
-- Remote MCP servers via `url` with optional headers
-- OAuth authentication support for remote servers
-- Per-agent tool enablement/disablement
-- Works in `opencode run` (non-interactive) mode
-
-**Important Notes:**
-- MCP servers add to context/token usage
-- Be selective about which MCP servers to enable
-- Certain servers (e.g., GitHub MCP) can quickly exceed context limits
-- Configure in `~/.config/opencode/opencode.json` (global) or project root (local)
-
-## Troubleshooting
-
-### Ralph won't start
-
-```bash
-# Check permissions
-chmod +x ralph.sh ralph-copilot.sh
-
-# Verify dependencies
-which jq claude gh
-
-# Test explicitly
-/bin/bash ralph.sh --tool claude 1
-```
-
-### Stories not progressing
-
-```bash
-# Check quality check commands in CLAUDE.md
-# Verify tests pass locally
-# Review progress.txt for errors
-tail -50 progress.txt
-```
-
-### Auto-runner not finding PRD
-
-```bash
-# Verify PRD location
-find ~/dev -name "prd.json" ! -path "*/archive/*"
-
-# Check incomplete stories exist
-jq '[.userStories[] | select(.passes == false)] | length' prd.json
-
-# Test auto-runner manually
-ralph-autorun test
-```
+**Remember**: Search documentation with qmd BEFORE making changes. The documentation contains crucial context about how the system works and why design decisions were made.
