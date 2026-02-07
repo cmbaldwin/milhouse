@@ -40,9 +40,9 @@ pi_status() {
     echo "======================="
     echo ""
 
-    if command -v pi-coding-agent &> /dev/null; then
-        local version=$(pi-coding-agent --version 2>/dev/null || echo "unknown")
-        echo "  ✓ pi-coding-agent installed ($version)"
+    if command -v pi &> /dev/null; then
+        local version=$(pi --version 2>/dev/null || echo "unknown")
+        echo "  ✓ pi-coding-agent installed (as 'pi', version $version)"
     else
         echo "  ✗ pi-coding-agent (not installed)"
         echo ""

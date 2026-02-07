@@ -324,9 +324,9 @@ run_agent() {
             pi)
                 # Pi Coding Agent
                 # Using --yes to force non-interactive mode if supported, or piping yes
-                # We assume pi-coding-agent command is available in PATH (from global install)
-                # Note: pi-coding-agent args might need adjustment based on real-world usage
-                (timeout "${timeout_mins}m" bash -c 'pi-coding-agent "$1" --yes 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                # The binary is named 'pi'
+                # Note: pi args might need adjustment based on real-world usage
+                (timeout "${timeout_mins}m" bash -c 'pi "$1" --yes 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                 exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                 rm -f "$tmpfile.rc"
                 ;;
