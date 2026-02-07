@@ -17,6 +17,7 @@ source "$SCRIPT_DIR/lib/autorun.sh"
 source "$SCRIPT_DIR/lib/sync.sh"
 source "$SCRIPT_DIR/lib/qmd.sh"
 source "$SCRIPT_DIR/lib/ruby.sh"
+source "$SCRIPT_DIR/lib/pi.sh"
 
 VERSION="2.0.1"
 
@@ -48,6 +49,9 @@ Usage:
   milhouse ruby setup               Install Ruby/Rails skills and MCP servers
   milhouse ruby status              Check Ruby/Rails installation status
   milhouse ruby help                Show Ruby/Rails help
+
+  milhouse pi setup                 Install Pi Coding Agent
+  milhouse pi status                Check Pi Coding Agent status
 
   milhouse update                   Update milhouse from repository
   milhouse version                  Show version
@@ -118,6 +122,15 @@ main() {
                 mcp) ruby_install_mcp_servers ;;
                 help) ruby_help ;;
                 *) ruby_help ;;
+            esac
+            ;;
+        pi)
+            shift
+            case "${1:-}" in
+                setup) pi_setup ;;
+                status) pi_status ;;
+                help) pi_help ;;
+                *) pi_help ;;
             esac
             ;;
         update)

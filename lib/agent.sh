@@ -130,8 +130,8 @@ run_agent() {
     done
 
     # Validate tool choice
-    if [[ "$tool" != "claude" && "$tool" != "copilot" && "$tool" != "opencode" && "$tool" != "amp" ]]; then
-        echo "Error: Invalid tool '$tool'. Must be 'claude', 'copilot', 'opencode', or 'amp'."
+    if [[ "$tool" != "claude" && "$tool" != "copilot" && "$tool" != "opencode" && "$tool" != "amp" && "$tool" != "pi" ]]; then
+        echo "Error: Invalid tool '$tool'. Must be 'claude', 'copilot', 'opencode', 'amp', or 'pi'."
         return 1
     fi
 
@@ -318,6 +318,15 @@ run_agent() {
             amp)
                 # AMP reads from stdin, so we pass the simple prompt via stdin
                 (timeout "${timeout_mins}m" bash -c 'echo "$1" | amp --dangerously-allow-all' _ "$SIMPLE_PROMPT" 2>&1; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
+                rm -f "$tmpfile.rc"
+                ;;
+            pi)
+                # Pi Coding Agent
+                # Using --yes to force non-interactive mode if supported, or piping yes
+                # We assume pi-coding-agent command is available in PATH (from global install)
+                # Note: pi-coding-agent args might need adjustment based on real-world usage
+                (timeout "${timeout_mins}m" bash -c 'pi-coding-agent "$1" --yes 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                 exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                 rm -f "$tmpfile.rc"
                 ;;
