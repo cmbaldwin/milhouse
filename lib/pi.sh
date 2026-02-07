@@ -50,12 +50,26 @@ pi_status() {
     fi
 }
 
+pi_config() {
+    echo "Starting Pi Coding Agent in interactive mode for configuration..."
+    echo "Please set up your API keys and preferences if prompted."
+    echo "Press Ctrl+C to exit when done."
+    echo ""
+    
+    if command -v pi &> /dev/null; then
+        pi
+    else
+        echo "✗ pi-coding-agent not found. Run 'milhouse pi setup' first."
+    fi
+}
+
 pi_help() {
     cat << EOF
 Milhouse Pi-Mono Commands
 
 Usage:
   milhouse pi setup       Install @mariozechner/pi-coding-agent
+  milhouse pi config      Run pi interactively for configuration
   milhouse pi status      Check installation status
   milhouse pi help        Show this help
 

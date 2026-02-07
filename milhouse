@@ -27,7 +27,7 @@ Milhouse - Autonomous AI Agent System
 
 Usage:
   milhouse run [turns]                     Run milhouse agent (default: 25 turns)
-  milhouse run --tool <tool> [turns]       Run with specific tool (claude|copilot|opencode|amp)
+  milhouse run --tool <tool> [turns]       Run with specific tool (claude|copilot|opencode|amp|pi)
   milhouse run --verbose [turns]           Run with verbose/streaming output (default)
   milhouse run --quiet [turns]             Run with minimal output
 
@@ -51,7 +51,12 @@ Usage:
   milhouse ruby help                Show Ruby/Rails help
 
   milhouse pi setup                 Install Pi Coding Agent
+  milhouse pi config                Configure Pi Coding Agent (run interactively)
   milhouse pi status                Check Pi Coding Agent status
+
+  milhouse config                   View current configuration
+  milhouse config edit              Edit configuration file
+  milhouse config set <key> <val>   Set a config value
 
   milhouse update                   Update milhouse from repository
   milhouse version                  Show version
@@ -64,6 +69,7 @@ Examples:
   milhouse run --tool claude --quiet Run with Claude (quiet mode)
   milhouse run --tool opencode      Run with OpenCode
   milhouse run --tool amp           Run with AMP
+  milhouse run --tool pi            Run with Pi Coding Agent
   milhouse autorun start            Start background automation
   milhouse autorun config           View configuration
   milhouse autorun config edit      Edit schedule configuration
@@ -128,10 +134,15 @@ main() {
             shift
             case "${1:-}" in
                 setup) pi_setup ;;
+                config) pi_config ;;
                 status) pi_status ;;
                 help) pi_help ;;
                 *) pi_help ;;
             esac
+            ;;
+        config)
+            shift
+            milhouse_config "$@"
             ;;
         update)
             # Run update script from the git repository
