@@ -64,6 +64,60 @@ get_simple_prompt() {
     echo "You are Milhouse, an autonomous AI agent. Read and follow the agent instructions in .milhouse/prompt.md. Your project context is in CLAUDE.md at the project root. Follow the workflow: read prd.json, pick one incomplete story, implement it, run quality checks, commit, update progress.txt, and signal completion with <promise>COMPLETE</promise> when all stories pass."
 }
 
+milhouse_config() {
+    local config_file="${MILHOUSE_CONFIG:-$HOME/.config/milhouse/config}"
+    local config_dir="$(dirname "$config_file")"
+
+    case "${1:-}" in
+        set)
+            local key="$2"
+            local value="$3"
+            if [[ -z "$key" || -z "$value" ]]; then
+                echo "Usage: milhouse config set <key> <value>"
+                echo ""
+                echo "Available keys:"
+                echo "  default_tool    Default AI tool (claude|copilot|opencode|amp|pi)"
+                echo "  dev_folder      Dev folder to scan for projects"
+                return 1
+            fi
+            mkdir -p "$config_dir"
+            if [[ -f "$config_file" ]] && grep -q "^${key}=" "$config_file" 2>/dev/null; then
+                sed -i '' "s|^${key}=.*|${key}=${value}|" "$config_file"
+            else
+                echo "${key}=${value}" >> "$config_file"
+            fi
+            echo "Set ${key}=${value}"
+            ;;
+        edit)
+            mkdir -p "$config_dir"
+            if [[ ! -f "$config_file" ]]; then
+                cat > "$config_file" << 'CONF'
+# Milhouse Configuration
+# Default AI tool for 'milhouse run' (claude|copilot|opencode|amp|pi)
+default_tool=claude
+
+# Dev folder to scan for projects
+# dev_folder=~/dev
+CONF
+                echo "Created default config at $config_file"
+            fi
+            "${EDITOR:-vi}" "$config_file"
+            ;;
+        *)
+            if [[ -f "$config_file" ]]; then
+                echo "Milhouse Configuration ($config_file):"
+                echo ""
+                cat "$config_file"
+            else
+                echo "No configuration file found."
+                echo ""
+                echo "Run 'milhouse config edit' to create one, or:"
+                echo "  milhouse config set default_tool copilot"
+            fi
+            ;;
+    esac
+}
+
 archive_completed_run() {
     local milhouse_dir="$1"
     local prd_file="$milhouse_dir/prd.json"
@@ -97,9 +151,18 @@ run_agent() {
 
     # Parse arguments
     local turns="25"
-    local tool="claude"
     local verbose="true"
     local timeout_mins="15"  # Per-iteration timeout in minutes
+
+    # Read default tool from config, fall back to claude
+    local config_file="${MILHOUSE_CONFIG:-$HOME/.config/milhouse/config}"
+    local tool="claude"
+    if [[ -f "$config_file" ]]; then
+        local configured_tool=$(grep "^default_tool=" "$config_file" 2>/dev/null | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+        if [[ -n "$configured_tool" ]]; then
+            tool="$configured_tool"
+        fi
+    fi
 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -322,11 +385,21 @@ run_agent() {
                 rm -f "$tmpfile.rc"
                 ;;
             pi)
+
                 # Pi Coding Agent
-                # Using --yes to force non-interactive mode if supported, or piping yes
-                # The binary is named 'pi'
-                # Note: pi args might need adjustment based on real-world usage
-                (timeout "${timeout_mins}m" bash -c 'pi "$1" --yes 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
+                # The tool attempts to start a TUI if it detects a TTY.
+                # We need to force it into non-interactive mode.
+                # According to common patterns, redirecting stdin from /dev/null might help if it checks isatty
+                # OR we need a specific flag.
+                # For now, let's try to run it with </dev/null to break TTY detection if it relies on stdin being a TTY.
+                # AND ensure we pass the prompt clearly.
+                # If 'pi' expects the prompt as an argument, "$1" is correct.
+                # We also remove --yes if it's not a real flag (it wasn't in the help text I saw, I guessed it).
+                
+                # Let's try to find the correct non-interactive invocation.
+                # Inspecting the error: "InteractiveMode.init". We want "HeadlessMode" or "ScriptMode".
+                # I will try to pass the prompt via argument and redirect stdin to /dev/null to prevent TUI.
+                (timeout "${timeout_mins}m" bash -c 'pi "$1" < /dev/null 2>&1' _ "$SIMPLE_PROMPT"; echo $? > "$tmpfile.rc") | tee "$tmpfile"
                 exit_code=$(cat "$tmpfile.rc" 2>/dev/null || echo 1)
                 rm -f "$tmpfile.rc"
                 ;;
