@@ -139,9 +139,13 @@ archive_completed_run() {
     [[ -f "$progress_file" ]] && cp "$progress_file" "$archive_folder/"
     echo "  Archived to: $archive_folder"
 
+    # Delete the original PRD file to prevent re-running
+    [[ -f "$prd_file" ]] && rm "$prd_file"
+    echo "  Removed completed $prd_file"
+
     # Reset progress file for next run
     echo "# Milhouse Progress Log" > "$progress_file"
-    echo "Started: $(date)" >> "$progress_file"
+    echo "Last archival: $(date)" >> "$progress_file"
     echo "---" >> "$progress_file"
 }
 
@@ -413,6 +417,20 @@ run_agent() {
 
         echo ""
         echo "Iteration $i complete. Continuing in 2s..."
+
+        # Update progress log
+        {
+            echo "## Iteration $i ($tool)"
+            echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "Exit Code: $exit_code"
+            if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
+                 echo "Status: COMPLETED"
+            else
+                 echo "Status: In Progress"
+            fi
+            echo "---"
+        } >> "$PROGRESS_FILE"
+
         sleep 2
     done
 
