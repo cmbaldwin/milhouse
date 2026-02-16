@@ -33,8 +33,8 @@ sync_instance() {
         # Check/setup qmd
         setup_qmd_for_project "$project_dir"
 
-        # Update CLAUDE.md
-        update_claude_md "$instance_dir" "$project_dir"
+        # Update AGENTS.md
+        update_agents_md "$instance_dir" "$project_dir"
     else
         echo "  ⚠ No .milhouse-source marker, skipping"
     fi
@@ -55,21 +55,21 @@ setup_qmd_for_project() {
     fi
 }
 
-update_claude_md() {
+update_agents_md() {
     local instance_dir="$1"
     local project_dir="$2"
-    local claude_md="$project_dir/CLAUDE.md"
+    local agents_md="$project_dir/AGENTS.md"
     local project_name="$(basename "$project_dir")"
 
-    if [[ ! -f "$claude_md" ]]; then
-        echo "  + Creating CLAUDE.md at project root"
-        create_claude_md_template "$project_dir" "$project_name"
+    if [[ ! -f "$agents_md" ]]; then
+        echo "  + Creating AGENTS.md at project root"
+        create_agents_md_template "$project_dir" "$project_name"
         return
     fi
 
-    # Check if CLAUDE.md has qmd section
-    if ! grep -q "qmd search" "$claude_md" 2>/dev/null; then
-        echo "  + Adding qmd section to CLAUDE.md"
+    # Check if AGENTS.md has qmd section
+    if ! grep -q "qmd search" "$agents_md" 2>/dev/null; then
+        echo "  + Adding qmd section to AGENTS.md"
 
         # Add qmd section after project overview
         local qmd_section=$(cat << EOF
@@ -88,12 +88,12 @@ EOF
 )
 
         # Insert after first heading
-        awk -v section="$qmd_section" '/^##/ && !done {print section; done=1} {print}' "$claude_md" > "$claude_md.tmp"
-        mv "$claude_md.tmp" "$claude_md"
+        awk -v section="$qmd_section" '/^##/ && !done {print section; done=1} {print}' "$agents_md" > "$agents_md.tmp"
+        mv "$agents_md.tmp" "$agents_md"
 
-        echo "  ✓ Updated CLAUDE.md with qmd instructions"
+        echo "  ✓ Updated AGENTS.md with qmd instructions"
     else
-        echo "  ✓ CLAUDE.md already has qmd section"
+        echo "  ✓ AGENTS.md already has qmd section"
     fi
 }
 
@@ -119,10 +119,10 @@ EOF
 
     echo "✓ Created .milhouse-source marker"
 
-    # Create CLAUDE.md template at project root
-    if [[ ! -f "$target_dir/CLAUDE.md" ]]; then
-        create_claude_md_template "$target_dir" "$(basename "$target_dir")"
-        echo "✓ Created CLAUDE.md template at project root"
+    # Create AGENTS.md template at project root
+    if [[ ! -f "$target_dir/AGENTS.md" ]]; then
+        create_agents_md_template "$target_dir" "$(basename "$target_dir")"
+        echo "✓ Created AGENTS.md template at project root"
     fi
 
     # Create prd.json template
@@ -150,17 +150,19 @@ EOF
     echo "✓ Milhouse installation complete!"
     echo ""
     echo "Next steps:"
-    echo "  1. Edit CLAUDE.md with your project context"
+    echo "  1. Edit AGENTS.md with your project context"
     echo "  2. Edit .milhouse/prd.json with your user stories"
     echo "  3. Run: milhouse run"
 }
 
-create_claude_md_template() {
+create_agents_md_template() {
     local target_dir="$1"
     local project_name="$2"
 
-    cat > "$target_dir/CLAUDE.md" << 'EOF'
+    cat > "$target_dir/AGENTS.md" << 'EOF'
 # Project Instructions for Milhouse
+
+<!-- MILHOUSE_DUMMY_AGENTS_TEMPLATE -->
 
 ## Project Overview
 
@@ -200,11 +202,15 @@ Run these before marking a story complete:
 - [Naming patterns]
 - [Project-specific patterns]
 
+## Bootstrap Prompt for Milhouse
+
+When this template exists, Milhouse should use the selected tool (`milhouse run` default tool or `--tool`) to scan the repository and `.milhouse/prd.json`, then rewrite this file with concrete project-specific instructions.
+
 EOF
 
     # Replace PROJECT_NAME placeholder
-    sed -i.bak "s/PROJECT_NAME/$project_name/g" "$target_dir/CLAUDE.md"
-    rm "$target_dir/CLAUDE.md.bak" 2>/dev/null || true
+    sed -i.bak "s/PROJECT_NAME/$project_name/g" "$target_dir/AGENTS.md"
+    rm "$target_dir/AGENTS.md.bak" 2>/dev/null || true
 }
 
 create_prd_template() {

@@ -51,7 +51,7 @@ milhouse/
 │   └── plans/               # Design documents
 ├── README.md
 ├── Milhouse-System-Documentation.md
-├── CLAUDE.md
+├── AGENTS.md
 └── skills/
     ├── prd/SKILL.md
     └── milhouse/SKILL.md
@@ -63,7 +63,7 @@ milhouse/
 your-project/
 ├── .milhouse/
 │   ├── .milhouse-source     # Marker file (repo URL/hash)
-│   ├── CLAUDE.md            # Project-specific + milhouse instructions
+│   ├── AGENTS.md            # Project-specific + milhouse instructions
 │   ├── prd.json             # User stories
 │   └── progress.txt         # Learning journal
 └── ... (project files)
@@ -114,7 +114,7 @@ your-project/
 4. For each project with `.milhouse/`:
    - Ensure qmd collection exists
    - Update qmd index
-   - Update CLAUDE.md with qmd instructions
+   - Update AGENTS.md with qmd instructions
 
 **Marker File** (`.milhouse/.milhouse-source`):
 ```
@@ -131,7 +131,7 @@ commit=<current-git-hash>
 2. Create qmd collection: `qmd collection add . --name project-name --mask "**/*.md" --exclude "node_modules/**"`
 3. Add context description
 4. Run initial embedding (optional, for semantic search)
-5. Update `.milhouse/CLAUDE.md` with qmd search instructions for this collection
+5. Update `.milhouse/AGENTS.md` with qmd search instructions for this collection
 
 ### `milhouse qmd update` Command
 
@@ -144,18 +144,18 @@ commit=<current-git-hash>
 ### QMD Integration in Agent Workflow
 
 **When `milhouse run` executes**:
-1. Before reading CLAUDE.md, check if qmd collection exists for parent project
+1. Before reading AGENTS.md, check if qmd collection exists for parent project
 2. If not, offer to run `milhouse qmd setup`
 3. Search relevant documentation based on current user story:
    - Extract keywords from user story title/description
    - Run: `qmd search "keywords" -c project-name -n 5`
 4. Include search results in prompt context sent to AI
-5. Update CLAUDE.md to always instruct agent to search qmd first
+5. Update AGENTS.md to always instruct agent to search qmd first
 
-### CLAUDE.md Enhancement
+### AGENTS.md Enhancement
 
-Each `.milhouse/CLAUDE.md` will include:
-1. **Parent project context** (if parent CLAUDE.md exists, read and include relevant sections)
+Each `.milhouse/AGENTS.md` will include:
+1. **Parent project context** (if parent AGENTS.md exists, read and include relevant sections)
 2. **QMD integration instructions**:
    - Always search qmd before making changes
    - Use project-specific collection name
@@ -171,7 +171,7 @@ Each `.milhouse/CLAUDE.md` will include:
 ```bash
 cd your-project
 milhouse install
-# Creates .milhouse/, CLAUDE.md template, prd.json template
+# Creates .milhouse/, AGENTS.md template, prd.json template
 # Sets up qmd collection
 # Adds .milhouse-source marker
 ```
@@ -182,7 +182,7 @@ milhouse sync
 # Scans ~/dev for all .milhouse instances
 # Updates CLI tool
 # Ensures qmd collections exist
-# Updates CLAUDE.md files
+# Updates AGENTS.md files
 ```
 
 ## Implementation Steps
@@ -205,7 +205,7 @@ milhouse sync
 4. Add `milhouse qmd setup` and `milhouse qmd update` commands
 5. Add `milhouse install` command
 6. Integrate qmd search into agent workflow
-7. Create CLAUDE.md template with qmd instructions
+7. Create AGENTS.md template with qmd instructions
 8. Test sync across multiple projects
 9. Test qmd auto-setup
 10. Commit and push

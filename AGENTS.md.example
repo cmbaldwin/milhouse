@@ -9,7 +9,7 @@
 ## Agent Execution Model
 
 - **Stateless:** You have no memory of previous iterations
-- **Context sources:** prd.json, progress.txt, CLAUDE.md, git log
+- **Context sources:** prd.json, progress.txt, AGENTS.md, git log
 - **Output:** Code changes, progress updates, pattern documentation
 - **Success criteria:** All user stories in prd.json have `passes: true`
 
@@ -22,7 +22,7 @@
 - **Language:** Japanese-first, all UI text via `t()` i18n helpers
 - **Deployment:** Kamal 2 to Hetzner VPS
 
-Read the main project CLAUDE.md at the repo root AND the oroshi gem's CLAUDE.md at `../oroshi/CLAUDE.md` for full conventions.
+Read the main project AGENTS.md at the repo root AND the oroshi gem's AGENTS.md at `../oroshi/AGENTS.md` for full conventions.
 
 ## Your Task
 
@@ -34,7 +34,7 @@ Read the main project CLAUDE.md at the repo root AND the oroshi gem's CLAUDE.md 
 6. Run quality checks:
    - `bundle exec rubocop --parallel` (linting)
    - `bin/rails test` (tests, if applicable)
-7. Update CLAUDE.md if you discover reusable patterns (see below)
+7. Update AGENTS.md if you discover reusable patterns (see below)
 8. If checks pass, commit ALL changes with message: `feat: [Story ID] - [Story Title]`
 9. Update the PRD to set `passes: true` for the completed story
 10. Append your progress to `progress.txt`
@@ -97,7 +97,7 @@ This project uses Milhouse for autonomous execution. If you're a different agent
 1. **Read these files first:**
    - `prd.json` - Your task list (machine-readable)
    - `progress.txt` - What previous agents learned
-   - This file (CLAUDE.md) - Project conventions
+   - This file (AGENTS.md) - Project conventions
 
 2. **After completing work:**
    - Update `prd.json` to mark stories as complete

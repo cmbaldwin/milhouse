@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Milhouse is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, AMP) and can run both manually and automatically via scheduled tasks.
+Milhouse is an autonomous AI agent system that executes product development tasks defined in PRD (Product Requirements Document) files. It supports multiple AI backends (Claude CLI, GitHub Copilot CLI, OpenCode, AMP, Codex) and can run both manually and automatically via scheduled tasks.
 
 **Repository**: `/Users/cody/Dev/milhouse`
 
@@ -48,7 +48,7 @@ The `milhouse` qmd collection includes:
 - **agents.md** - Agent behavior and patterns
 - **skills/prd/skill.md** - PRD management skill
 - **skills/milhouse/skill.md** - Milhouse workflow skill
-- **prompt.md** - Agent iteration workflow template (combined with CLAUDE.md at runtime)
+- **prompt.md** - Agent iteration workflow template (combined with AGENTS.md at runtime)
 - **prompt-example-rails.md** - Rails-specific example prompt
 
 ### Search Workflow
@@ -78,9 +78,9 @@ milhouse/                                 # This repo
 │   ├── sync.sh                           # Install/sync milhouse into projects
 │   ├── qmd.sh                            # Documentation search integration
 │   └── ruby.sh                           # Ruby/Rails defaults
-├── prompt.md                             # Agent iteration workflow (combined with project CLAUDE.md at runtime)
+├── prompt.md                             # Agent iteration workflow (combined with project AGENTS.md at runtime)
 ├── prompt.example-rails.md               # Rails-specific example prompt
-├── CLAUDE.md                             # This file
+├── AGENTS.md                             # This file
 ├── README.md                             # Main documentation
 ├── Milhouse-AutoRunner-README.md         # Auto-runner docs
 ├── agents.md                             # Agent patterns
@@ -94,7 +94,7 @@ milhouse/                                 # This repo
 
 ```
 your-project/
-├── CLAUDE.md                             # Project-specific context (tech stack, quality commands, conventions)
+├── AGENTS.md                             # Project-specific context (tech stack, quality commands, conventions)
 ├── .milhouse/
 │   ├── prd.json                          # User stories with passes: true/false
 │   ├── progress.txt                      # Append-only learning journal
@@ -141,9 +141,9 @@ At runtime, milhouse combines two files into a single prompt for all tools:
 
 1. **`prompt.md`** (from milhouse repo) — Agent iteration workflow instructions. Tells the agent how to work: read prd.json, pick one story, implement it, run quality checks, commit, update progress.txt, signal completion. Same for all projects.
 
-2. **`CLAUDE.md`** (from project root) — Project-specific context. Tech stack, quality commands, conventions, patterns. Different for each project.
+2. **`AGENTS.md`** (from project root) — Project-specific context. Tech stack, quality commands, conventions, patterns. Different for each project.
 
-The combined prompt is fed identically to all backends (Claude, Copilot, OpenCode, AMP).
+The combined prompt is fed identically to all backends (Claude, Copilot, OpenCode, AMP, Codex).
 
 ### PRD Files (prd.json)
 - Located in `your-project/.milhouse/prd.json`
@@ -151,9 +151,9 @@ The combined prompt is fed identically to all backends (Claude, Copilot, OpenCod
 - Milhouse processes stories where `passes: false`
 - Updates `passes: true` when complete
 
-### CLAUDE.md Files
+### AGENTS.md Files
 - Project-specific context and instructions
-- Located at **project root** (`your-project/CLAUDE.md`)
+- Located at **project root** (`your-project/AGENTS.md`)
 - Defines quality checks, conventions, tech stack
 - Combined with prompt.md at runtime to build the agent prompt
 
@@ -305,9 +305,11 @@ qmd update                           # Update index after doc changes
 ```bash
 milhouse run [turns]                    # Run agent (default 25 turns)
 milhouse run --tool claude 1            # Single iteration with Claude
+milhouse run --tool codex 1             # Single iteration with Codex
 milhouse autorun status                 # Check auto-runner status
 milhouse autorun logs                   # View recent activity
 milhouse autorun schedule               # Show operating hours
+milhouse autorun sleep-check on         # Enable wake/check/sleep mode
 milhouse autorun test                   # Dry run (doesn't execute)
 milhouse install .                      # Install milhouse into current project
 ```

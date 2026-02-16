@@ -152,7 +152,7 @@ bin/rails db:schema:load:cable
 - **lib/** - Custom library code (Printable, API clients, etc.)
 - **config/** - Rails configuration and deployment files
 - **db/** - Database schemas and migrations (4 schema files)
-- **CLAUDE.md** - Production deployment guide
+- **AGENTS.md** - Production deployment guide
 
 ## Key Constraints
 

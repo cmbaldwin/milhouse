@@ -12,7 +12,7 @@ Milhouse is designed for **stateless agent instances** with **persistent memory 
 - **Memory persists through:**
   - `prd.json` - Task list and completion status
   - `progress.txt` - Append-only learning journal
-  - `CLAUDE.md` - Project conventions and patterns
+  - `AGENTS.md` - Project conventions and patterns
   - Git history - Atomic commits per story
 
 ## How It Works
@@ -64,7 +64,7 @@ milhouse install
 This creates:
 
 - `.milhouse/` directory
-- `CLAUDE.md` template
+- `AGENTS.md` template
 - `prd.json` template
 - qmd collection for your project
 
@@ -89,21 +89,21 @@ milhouse run
 
 ### Scripts
 
-- **milhouse.sh** - Main Milhouse agent script (supports Claude CLI and AMP backends)
+- **milhouse.sh** - Main Milhouse agent script (supports Claude, Copilot, OpenCode, AMP, Pi, and Codex backends)
 - **milhouse-copilot.sh** - GitHub Copilot CLI variant
 - **milhouse-autorun.sh** - System-wide auto-runner that finds and executes incomplete PRDs
 - **milhouse-autorun** - Management command for the auto-runner service
 
 ### Project Files (in your project's `.milhouse/` directory)
 
-- **CLAUDE.md** - Agent instructions, conventions, and quality check commands
+- **AGENTS.md** - Agent instructions, conventions, and quality check commands
 - **prd.json** - Product requirements with user stories and completion status
 - **progress.txt** - Append-only learning journal documenting completed work
 - **.last-branch** - Tracks current branch for auto-archiving completed PRDs
 
 ### Examples
 
-- **CLAUDE.md.example** - Template for agent instructions
+- **AGENTS.md.example** - Template for agent instructions
 - **prd.json.example** - Template PRD structure
 - **prompt.md** - Legacy prompt format (for reference)
 - **prompt.example-rails.md** - Rails-specific example
@@ -139,22 +139,29 @@ milhouse run --tool opencode 25
 milhouse run --tool amp 15
 ```
 
+**Run with Codex CLI:**
+
+```bash
+milhouse run --tool codex 25
+```
+
 ### Backend Comparison
 
-| Backend  | Command                                         | CLAUDE.md | prompt.md | Browser MCP | GitHub Integration | MCP Support |
+| Backend  | Command                                         | AGENTS.md | prompt.md | Browser MCP | GitHub Integration | MCP Support |
 | -------- | ----------------------------------------------- | --------- | --------- | ----------- | ------------------ | ----------- |
 | Claude   | `claude --dangerously-skip-permissions --print` | ✓         | ✗         | ✓           | ✗                  | Full        |
 | Copilot  | `gh copilot --allow-all -p`                     | ✓         | ✗         | ✗           | ✓                  | Partial     |
 | OpenCode | `opencode run`                                  | ✓         | ✗         | ✗           | ✗                  | Full        |
 | AMP      | `amp --dangerously-allow-all`                   | ✗         | ✓         | ✗           | ✗                  | Full        |
+| Codex    | `codex exec --full-auto`                        | ✓         | ✗         | ✗           | ✗                  | Full        |
 
-**Recommendation:** Use Claude CLI for browser automation tasks, Copilot for GitHub-integrated workflows.
+**Recommendation:** Use Claude CLI for browser automation tasks, Copilot for GitHub-integrated workflows, and Codex for in-app autonomous PRD execution.
 
 ### Agent Interoperability
 
 Milhouse uses **tool-agnostic prompt files** to enable cross-agent compatibility:
 
-- **CLAUDE.md** - Universal format for Claude, Copilot, OpenCode
+- **AGENTS.md** - Universal format for Claude, Copilot, OpenCode, and Codex
 - **prompt.md** - AMP-specific format
 - **prd.json** - Machine-readable task specification (JSON)
 - **progress.txt** - Human and AI readable learning journal (Markdown)
@@ -232,6 +239,21 @@ milhouse-autorun restart   # Restart scheduler
 milhouse-autorun test      # Run manually once
 milhouse-autorun logs      # Show recent logs
 milhouse-autorun watch     # Watch logs in real-time
+milhouse autorun sleep-check on         # Enable wake/check/sleep mode
+milhouse autorun sleep-check status     # Show sleep-check settings
+milhouse autorun sleep-check off        # Disable sleep-check mode
+```
+
+**Sleep-check mode (optional):**
+
+When enabled, Milhouse can wake your Mac at a configured time, run one PRD check, and put the system back to sleep if no work is found.
+
+```bash
+# Enable with defaults: check at 00:01, wake at 00:00, sleep when idle
+milhouse autorun sleep-check on
+
+# Or pass explicit values:
+milhouse autorun sleep-check on 00:05 00:00 true
 ```
 
 ### Monitor Progress
@@ -277,9 +299,9 @@ watch -n 5 'jq ".userStories[] | {id, title, passes}" prd.json'
 - `passes: true` - Story complete, Milhouse skips it
 - `priority` - Lower numbers = higher priority (1 is highest)
 
-## CLAUDE.md Structure
+## AGENTS.md Structure
 
-Your `CLAUDE.md` file must include:
+Your `AGENTS.md` file must include:
 
 - Project context and tech stack
 - Task execution instructions
@@ -288,7 +310,7 @@ Your `CLAUDE.md` file must include:
 - Codebase patterns and conventions
 - Stop condition (`<promise>COMPLETE</promise>`)
 
-See [CLAUDE.md.example](CLAUDE.md.example) for a complete template.
+See [AGENTS.md.example](AGENTS.md.example) for a complete template.
 
 ## Milhouse's Workflow
 
@@ -404,7 +426,13 @@ See [defaults/ruby/README.md](defaults/ruby/README.md) for full documentation.
 - Uses `prompt.md` format
 - Configure based on AMP documentation
 
-**Recommendation:** Use `milhouse.sh --tool claude` for PRDs requiring browser testing.
+### Codex CLI (`milhouse.sh --tool codex`)
+
+- ✅ **In-app orchestration**: Works well with Codex app automation flows
+- ✅ **Non-interactive mode**: Uses `codex exec --full-auto`
+- ✅ **Configurable**: Supports `MILHOUSE_CODEX_PROFILE` and `MILHOUSE_CODEX_MODEL`
+
+**Recommendation:** Use `milhouse.sh --tool claude` for PRDs requiring browser testing and `milhouse.sh --tool codex` for Codex-first automation pipelines.
 
 ## Dependencies
 
@@ -420,10 +448,14 @@ brew install claude-cli      # Claude AI CLI
 # For milhouse-copilot.sh
 gh extension install github/gh-copilot  # GitHub Copilot CLI
 
+# For milhouse.sh --tool codex
+brew install codex                      # Codex CLI
+
 # Verify installations
 which jq && echo "✓ jq installed"
 which claude && echo "✓ claude installed"
 which gh && gh copilot --version && echo "✓ gh copilot installed"
+which codex && codex --version && echo "✓ codex installed"
 ```
 
 ## Flowchart Visualization
@@ -455,7 +487,7 @@ milhouse/
 ├── milhouse-copilot.sh           # GitHub Copilot variant
 ├── milhouse-autorun.sh           # System-wide auto-runner
 ├── milhouse-autorun              # Management command
-├── CLAUDE.md.example          # Agent instructions template
+├── AGENTS.md.example          # Agent instructions template
 ├── prd.json.example           # PRD template
 ├── prompt.md                  # Legacy prompt (for AMP)
 ├── prompt.example-rails.md    # Rails-specific example
@@ -473,7 +505,7 @@ your-project/
 ├── .milhouse/
 │   ├── milhouse.sh
 │   ├── milhouse-copilot.sh
-│   ├── CLAUDE.md
+│   ├── AGENTS.md
 │   ├── prd.json
 │   ├── progress.txt
 │   ├── .last-branch
@@ -565,7 +597,7 @@ jq '[.userStories[] | select(.passes == false)] | length' .milhouse/prd.json
 # Keep these tracked:
 # .milhouse/milhouse.sh
 # .milhouse/milhouse-copilot.sh
-# .milhouse/CLAUDE.md
+# .milhouse/AGENTS.md
 # .milhouse/prd.json
 # .milhouse/progress.txt
 ```
