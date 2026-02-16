@@ -22,8 +22,9 @@ source "$SCRIPT_DIR/lib/claude.sh"
 source "$SCRIPT_DIR/lib/copilot.sh"
 source "$SCRIPT_DIR/lib/opencode.sh"
 source "$SCRIPT_DIR/lib/amp.sh"
+source "$SCRIPT_DIR/lib/codex.sh"
 
-VERSION="2.0.1"
+VERSION="2.0.2"
 
 show_help() {
     cat << EOF
@@ -31,7 +32,7 @@ Milhouse - Autonomous AI Agent System
 
 Usage:
   milhouse run [turns]                     Run milhouse agent (default: 25 turns)
-  milhouse run --tool <tool> [turns]       Run with specific tool (claude|copilot|opencode|amp|pi)
+  milhouse run --tool <tool> [turns]       Run with specific tool (claude|copilot|opencode|amp|pi|codex)
   milhouse run --verbose [turns]           Run with verbose/streaming output (default)
   milhouse run --quiet [turns]             Run with minimal output
 
@@ -43,6 +44,7 @@ Usage:
   milhouse autorun watch            Watch autorunner logs in real-time
   milhouse autorun schedule         Show/edit schedule
   milhouse autorun config [edit]    View or edit configuration
+  milhouse autorun sleep-check      Configure wake/check/sleep behavior
   milhouse autorun test             Dry run (find PRDs, don't execute)
 
   milhouse sync                     Sync all milhouse instances in ~/dev
@@ -65,6 +67,8 @@ Usage:
   milhouse update                   Update milhouse from repository
   milhouse version                  Show version
   milhouse help                     Show this help
+  milhouse help docs                Show full CLI documentation for agents
+  milhouse docs                     Alias for 'milhouse help docs'
 
 Examples:
   milhouse run 15                   Run for 15 turns (verbose output)
@@ -74,13 +78,101 @@ Examples:
   milhouse run --tool opencode      Run with OpenCode
   milhouse run --tool amp           Run with AMP
   milhouse run --tool pi            Run with Pi Coding Agent
+  milhouse run --tool codex         Run with Codex CLI (non-interactive)
   milhouse autorun start            Start background automation
   milhouse autorun config           View configuration
   milhouse autorun config edit      Edit schedule configuration
+  milhouse autorun sleep-check on   Enable midnight wake/check/sleep mode
   milhouse sync                     Update all instances
   milhouse qmd setup                Configure qmd for this project
   milhouse ruby setup               Set up Ruby/Rails skills and MCP servers
 
+EOF
+}
+
+show_docs() {
+    cat << 'EOF'
+Milhouse CLI Documentation (Agent-Friendly)
+
+1. Purpose
+- `milhouse` runs autonomous task execution from `.milhouse/prd.json`.
+- It iterates through incomplete stories (`passes: false`) and updates progress.
+
+2. Required Project Files
+- Project root: `AGENTS.md` (project-specific instructions and conventions)
+- Project root: `.milhouse/prd.json` (user stories)
+- Project root: `.milhouse/progress.txt` (append-only run log)
+- Optional: `.milhouse/.last-branch` (auto-managed branch tracking)
+- Runtime instruction source: Milhouse `prompt.md` from install/repo path
+
+3. Core Commands
+- `milhouse run [turns]`
+- `milhouse run --tool <claude|copilot|opencode|amp|pi|codex> [turns]`
+- `milhouse run --timeout <minutes> [turns]`
+- `milhouse run --verbose [turns]`
+- `milhouse run --quiet [turns]`
+
+- `milhouse install [project]`
+- `milhouse sync`
+
+- `milhouse autorun start|stop|restart|status|logs|watch|schedule|config|sleep-check|test`
+
+- `milhouse qmd setup|update`
+
+- `milhouse ruby setup|status|skills|mcp|help`
+- `milhouse pi setup|config|status|help`
+
+- `milhouse config`
+- `milhouse config edit`
+- `milhouse config set <key> <value>`
+
+- `milhouse update`
+- `milhouse version`
+- `milhouse help`
+- `milhouse help docs` (this output)
+
+4. Run Behavior
+- Detects project from current directory:
+  - inside `.milhouse/`, or
+  - project root containing `.milhouse/`.
+- Loads default tool from config (`default_tool`), overridable via `--tool`.
+- On each iteration:
+  - reads PRD status
+  - runs selected AI backend with a simple control prompt
+  - checks for completion marker `<promise>COMPLETE</promise>`
+  - appends iteration status to `.milhouse/progress.txt`
+- Stops when:
+  - all stories pass, or
+  - completion marker is emitted, or
+  - max turns reached, or
+  - repeated failures/timeouts hit guardrails.
+
+5. Tool Adapters
+- `claude` -> `claude --dangerously-skip-permissions --print`
+- `copilot` -> `gh copilot --allow-all -p`
+- `opencode` -> `opencode run`
+- `amp` -> `amp --dangerously-allow-all`
+- `pi` -> `pi`
+- `codex` -> `codex exec --full-auto`
+  - optional env: `MILHOUSE_CODEX_PROFILE`, `MILHOUSE_CODEX_MODEL`
+
+6. Config Keys
+- `default_tool`: `claude|copilot|opencode|amp|pi|codex`
+- `dev_folder`: root folder scanned for projects
+- Config file: `${MILHOUSE_CONFIG:-$HOME/.config/milhouse/config}`
+
+7. Install Workflow
+- `milhouse install` creates/ensures:
+  - `.milhouse/`
+  - `.milhouse/.milhouse-source`
+  - `AGENTS.md` template (if missing)
+  - `.milhouse/prd.json` template (if missing)
+  - `.milhouse/progress.txt` (if missing)
+- Optionally initializes qmd collection for docs search.
+
+8. Exit Semantics (for agents)
+- Exit `0`: successful run/completion path.
+- Exit non-zero: validation failure, tool error, timeout/failure guardrail, or bad command usage.
 EOF
 }
 
@@ -102,6 +194,7 @@ main() {
                 watch) autorun_watch ;;
                 schedule) autorun_schedule ;;
                 config) shift; autorun_config "$@" ;;
+                sleep-check) shift; autorun_sleep_check "$@" ;;
                 test) autorun_test ;;
                 daemon) autorun_daemon ;;
                 *) echo "Unknown autorun command: ${1:-}"; show_help; exit 1 ;;
@@ -162,8 +255,15 @@ main() {
         version)
             echo "Milhouse version $VERSION"
             ;;
+        docs)
+            show_docs
+            ;;
         help|--help|-h)
-            show_help
+            if [[ "${2:-}" == "docs" ]]; then
+                show_docs
+            else
+                show_help
+            fi
             ;;
         *)
             echo "Unknown command: ${1:-}"
